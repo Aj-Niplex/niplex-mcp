@@ -29,11 +29,29 @@ class GithubBridge:
         files = [item["name"] for item in data]
         return "\n".join(files) if files else "No files found."
 
-    def read_file(self, file_path: str) -> str:
+    def write_file(self, file_path: str, content: str, commit_message: str = "Update file via NIPLEX-MCP") -> str:
+        # 1. Get the current SHA of the file if it exists
         endpoint = f"repos/{self.user}/{self.repo}/contents/{file_path}"
-        data = self.request(endpoint)
-        if "error" in data: return data["error"]
+        current_data = self.request(endpoint)
+        sha = None
+        if "sha" in current_data:
+            sha = current_data["sha"]
+        elif "error" in current_data and "404" not in current_data["error"]:
+            return current_data["error"]
+
+        # 2. Prepare the PUT request
         import base64
-        content = data.get("content", "")
-        if not content: return "File is empty."
-        return base64.b64decode(content).decode("utf-8")
+        encoded_content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+        
+        data = {
+            "message": commit_message,
+            "content": encoded_content
+        }
+        if sha:
+            data["sha"] = sha
+
+        res = self.request(endpoint, method="PUT", data=data)
+        if "error" in res:
+            return res["error"]
+        
+        return f"Successfully updated {file_path} in GitHub."

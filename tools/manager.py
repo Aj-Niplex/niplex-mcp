@@ -13,8 +13,14 @@ class MCPTools:
     def read_file(self, file_path: str) -> str:
         return self.github.read_file(file_path)
 
+    def write_file(self, file_path: str, content: str, commit_message: str = "Update via NIPLEX-MCP") -> str:
+        return self.github.write_file(file_path, content, commit_message)
+
     def run_sandbox(self, command: str, ttl_minutes: int = 0) -> str:
         return self.daytona.execute_command(command, ttl_minutes)
+
+    def write_sandbox_file(self, file_path: str, content: str) -> str:
+        return self.daytona.write_file(file_path, content)
 
     def destroy_sandbox(self, sandbox_id: str) -> str:
         return self.daytona.delete_sandbox(sandbox_id)
