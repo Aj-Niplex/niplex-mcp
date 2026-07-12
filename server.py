@@ -7,7 +7,9 @@ def install_dependencies():
     required = ["fastmcp", "requests", "daytona-sdk"]
     for pkg in required:
         try:
-            __import__(pkg.replace("-", "_"))
+            # Special handling for daytona-sdk as the import name is 'daytona'
+            import_name = "daytona" if pkg == "daytona-sdk" else pkg.replace("-", "_")
+            __import__(import_name)
         except ImportError:
             print(f"Installing missing dependency: {pkg}...")
             subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
