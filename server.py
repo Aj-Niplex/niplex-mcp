@@ -1,4 +1,20 @@
 import os
+import subprocess
+import sys
+
+# --- BOOTLOADER: Ensure dependencies are installed at runtime ---
+def install_dependencies():
+    required = ["fastmcp", "requests", "daytona-sdk"]
+    for pkg in required:
+        try:
+            __import__(pkg.replace("-", "_"))
+        except ImportError:
+            print(f"Installing missing dependency: {pkg}...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
+
+install_dependencies()
+# --------------------------------------------------------------
+
 import requests
 import time
 import base64
