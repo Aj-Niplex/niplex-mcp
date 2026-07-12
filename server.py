@@ -1,4 +1,10 @@
+import os
+import requests
+import time
+import base64
 from fastmcp import FastMCP
+from integrations.github import GithubBridge
+from integrations.daytona import DaytonaBridge
 from tools.manager import MCPTools
 
 mcp = FastMCP("NIPLEX-MCP")
@@ -15,9 +21,18 @@ def read_github_file(file_path: str) -> str:
     return tools.read_file(file_path)
 
 @mcp.tool()
-def execute_in_sandbox(command: str) -> str:
-    """Runs a command in a temporary Daytona sandbox and destroys it immediately."""
-    return tools.run_sandbox(command)
+def execute_in_sandbox(command: str, ttl_minutes: int = 0) -> str:
+    """
+    Runs a command in a Daytona sandbox. 
+    ttl_minutes: If > 0, the sandbox stays alive for this many minutes.
+    If 0 (default), the sandbox is destroyed immediately.
+    """
+    return tools.run_sandbox(command, ttl_minutes)
+
+@mcp.tool()
+def delete_sandbox(sandbox_id: str) -> str:
+    """Manually destroys a specific Daytona sandbox immediately."""
+    return tools.destroy_sandbox(sandbox_id)
 
 @mcp.tool()
 def niplex_helper(query: str) -> str:
