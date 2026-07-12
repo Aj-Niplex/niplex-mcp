@@ -5,21 +5,40 @@ class DaytonaBridge:
     def __init__(self, api_key: str):
         self.api_key = api_key
 
-    def execute_command(self, command: str) -> str:
+    def execute_command(self, command: str, ttl_minutes: int = 0) -> str:
         try:
             os.environ["DAYTONA_API_KEY"] = self.api_key
             daytona = Daytona()
             
+            # Configure lifecycle based on TTL
+            stop_int = ttl_minutes if ttl_minutes > 0 else 5
+            del_int = ttl_minutes if ttl_minutes > 0 else 0
+            
             params = CreateSandboxFromSnapshotParams(
-                auto_stop_interval=5,
-                auto_archive_interval=5,
-                auto_delete_interval=0,
+                auto_stop_interval=stop_int,
+                auto_archive_interval=stop_int,
+                auto_delete_interval=del_int,
             )
             
             sandbox = daytona.create(params)
             result = sandbox.execute(command)
-            sandbox.delete()
             
-            return f"[Disposable Sandbox {sandbox.id}]:\n{result}"
+            if ttl_minutes == 0:
+                sandbox.delete()
+                status = "Destroyed instantly (TTL=0)"
+            else:
+                status = f"Kept alive for {ttl_minutes}m (Auto-delete active)"
+            
+            return f"[Sandbox {sandbox.id}] - {status}:\n{result}"
         except Exception as e:
             return f"Daytona Execution Error: {str(e)}"
+
+    def delete_sandbox(self, sandbox_id: str) -> str:
+        try:
+            os.environ["DAYTONA_API_KEY"] = self.api_key
+            daytona = Daytona()
+            sandbox = daytona.get_sandbox(sandbox_id)
+            sandbox.delete()
+            return f"Sandbox {sandbox_id} has been successfully destroyed."
+        except Exception as e:
+            return f"Error deleting sandbox {sandbox_id}: {str(e)}"

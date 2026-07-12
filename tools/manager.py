@@ -13,8 +13,11 @@ class MCPTools:
     def read_file(self, file_path: str) -> str:
         return self.github.read_file(file_path)
 
-    def run_sandbox(self, command: str) -> str:
-        return self.daytona.execute_command(command)
+    def run_sandbox(self, command: str, ttl_minutes: int = 0) -> str:
+        return self.daytona.execute_command(command, ttl_minutes)
+
+    def destroy_sandbox(self, sandbox_id: str) -> str:
+        return self.daytona.delete_sandbox(sandbox_id)
 
     def helper(self, query: str) -> str:
         return f"NIPLEX-MCP Bridge Helper: {query}"
