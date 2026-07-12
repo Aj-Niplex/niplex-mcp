@@ -4,15 +4,17 @@ import sys
 
 # --- BOOTLOADER: Ensure dependencies are installed at runtime ---
 def install_dependencies():
-    required = ["fastmcp", "requests", "daytona-sdk"]
-    for pkg in required:
+    required = {
+        "fastmcp": "fastmcp",
+        "requests": "requests",
+        "daytona": "daytona"
+    }
+    for import_name, pkg_name in required.items():
         try:
-            # Special handling for daytona-sdk as the import name is 'daytona'
-            import_name = "daytona" if pkg == "daytona-sdk" else pkg.replace("-", "_")
             __import__(import_name)
         except ImportError:
-            print(f"Installing missing dependency: {pkg}...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
+            print(f"Installing missing dependency: {pkg_name}...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg_name])
 
 install_dependencies()
 # --------------------------------------------------------------
