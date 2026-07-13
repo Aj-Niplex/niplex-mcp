@@ -26,7 +26,6 @@ class YoutubeBridge:
             return [self._strip_bloat(item) for item in data]
         
         if isinstance(data, dict):
-            # Define high-value fields to keep
             essential_fields = {
                 'snippet': ['title', 'description', 'publishedAt', 'channelTitle', 'thumbnails'],
                 'statistics': ['viewCount', 'likeCount', 'commentCount'],
@@ -43,7 +42,6 @@ class YoutubeBridge:
                     if allowed_values is None:
                         filtered[key] = data[key]
                     elif isinstance(data[key], dict) and allowed_values:
-                        # Filter nested dicts
                         nested = {k: v for k, v in data[key].items() if k in allowed_values}
                         filtered[key] = nested
             
@@ -90,12 +88,7 @@ class YoutubeBridge:
         return json.dumps(items, indent=2)
 
     def get_transcript(self, video_id):
-        '''
-        Fetches transcript using a lightweight scraping approach
-        to avoid the heavy official API quota for captions.
-        '''
         try:
-            # Using a placeholder for the youtube-transcript-api implementation
             return 'Transcript for ' + str(video_id) + ' requested. [System: Install "youtube-transcript-api" for full access]'
         except Exception as e:
             return 'Transcript Error: ' + str(e)
