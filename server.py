@@ -70,6 +70,14 @@ def scrape_website(url: str) -> str:
     return tools.scrape_web(url)
 
 @mcp.tool()
+def search_web(query: str, mode: str = 'web') -> str:
+    """
+    Perform a web search via You.com. 
+    mode: 'web' for fast search, 'research' for deep agentic synthesis.
+    """
+    return tools.search_web(query, mode)
+
+@mcp.tool()
 def niplex_helper(query: str) -> str:
     """A helper tool for NIPLEX operations."""
     return tools.helper(query)
