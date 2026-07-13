@@ -55,6 +55,21 @@ def delete_sandbox(sandbox_id: str) -> str:
     return tools.destroy_sandbox(sandbox_id)
 
 @mcp.tool()
+def query_neural_os(query: str) -> str:
+    """Query the Neural-OS Life Database for goals, tasks, and profiles."""
+    return tools.query_neural_os(query)
+
+@mcp.tool()
+def update_neural_os(key: str, value: str) -> str:
+    """Update a record in the Neural-OS Life Database."""
+    return tools.update_neural_os(key, value)
+
+@mcp.tool()
+def scrape_website(url: str) -> str:
+    """Scrape content from a website via the NIPLEX Web Scraper API."""
+    return tools.scrape_web(url)
+
+@mcp.tool()
 def niplex_helper(query: str) -> str:
     """A helper tool for NIPLEX operations."""
     return tools.helper(query)
