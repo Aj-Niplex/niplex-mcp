@@ -3,6 +3,7 @@ from integrations.daytona import DaytonaBridge
 from integrations.neural_os import NeuralOSBridge
 from integrations.scraper import WebScraperBridge
 from integrations.you_com import YouComBridge
+from integrations.mcp_bridge import MCPClientBridge
 import os
 
 class MCPTools:
@@ -12,6 +13,7 @@ class MCPTools:
         self.neural_os = NeuralOSBridge()
         self.scraper = WebScraperBridge()
         self.you_com = YouComBridge()
+        self.mcp = MCPClientBridge()
 
     def list_files(self, path: str = "") -> str:
         return self.github.list_files(path)
@@ -45,3 +47,6 @@ class MCPTools:
 
     def helper(self, query: str) -> str:
         return f"NIPLEX-MCP Bridge Helper: {query}"
+
+    def call_remote_tool(self, server: str, tool: str, args: dict) -> str:
+        return self.mcp.call_tool(server, tool, args)

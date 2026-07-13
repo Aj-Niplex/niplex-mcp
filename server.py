@@ -82,6 +82,21 @@ def niplex_helper(query: str) -> str:
     """A helper tool for NIPLEX operations."""
     return tools.helper(query)
 
+@mcp.tool()
+def call_remote_mcp(server: str, tool: str, args: str) -> str:
+    """
+    Delegates a tool call to another MCP server.
+    server: Key or URL of the remote server.
+    tool: Name of the tool to call.
+    args: JSON string of arguments.
+    """
+    import json
+    try:
+        parsed_args = json.loads(args)
+        return tools.call_remote_tool(server, tool, parsed_args)
+    except json.JSONDecodeError:
+        return "Error: arguments must be a valid JSON string."
+
 if __name__ == "__main__":
     port = 7860
     mcp.run(transport="http", host="0.0.0.0", port=port)
