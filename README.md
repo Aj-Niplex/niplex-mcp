@@ -17,6 +17,8 @@ graph TD
     MCP --> Daytona[Daytona Sandbox<br/>Isolated Code Execution] 
     MCP --> Google[Google Control<br/>via G.Key]
     MCP --> Scraper[Web Scraper<br/>via API]
+    MCP --> YouTube[YouTube Data<br/>Token-Optimized API]
+    MCP --> RemoteMCP[Remote MCPs<br/>Orchestrator Bridge]
 
     %% Styling
     style MCP fill:#1f6feb,stroke:#fff,stroke-width:2px,color:#fff
@@ -24,6 +26,8 @@ graph TD
     style NeuralOS fill:#8957e5,stroke:#fff,stroke-width:1px,color:#fff
     style Daytona fill:#da3633,stroke:#fff,stroke-width:1px,color:#fff
     style Scraper fill:#d29922,stroke:#fff,stroke-width:1px,color:#fff
+    style YouTube fill:#ff0000,stroke:#fff,stroke-width:1px,color:#fff
+    style RemoteMCP fill:#f96,stroke:#333,stroke-width:1px,color:#000
 ```
 
 ## 🏗️ Modular Architecture
@@ -34,6 +38,9 @@ The server is built with a decoupled architecture to ensure scalability and main
   - `daytona.py`: Manages the lifecycle of disposable sandboxes using the Daytona SDK.
   - `neural_os.py`: Bridge to the internal life database.
   - `scraper.py`: Interface for web data extraction.
+  - `you_com.py`: High-authority agentic search bridge.
+  - `youtube.py`: Token-optimized YouTube Data API bridge.
+  - `mcp_bridge.py`: Orchestration layer for remote MCP server delegation.
 - **`tools/`**: The orchestration layer.
   - `manager.py`: Maps integration capabilities into high-level tools for the agent.
 - **`server.py`**: The FastMCP entry point that exposes tools to the connected AI client.
@@ -54,8 +61,13 @@ The server is built with a decoupled architecture to ensure scalability and main
 - **`query_neural_os`**: Access goals, tasks, and user profiles.
 - **`update_neural_os`**: Persist new memories or update goals.
 
-### 4. Web Intelligence (Scraper)
+### 4. Intelligence & Search
 - **`scrape_website`**: Extract high-fidelity content from the web via API.
+- **`search_web`**: Agentic search via You.com for deep research.
+- **`search_youtube`**: Find viral outlier videos and channel stats with minimal token overhead.
+
+### 5. MCP Orchestration
+- **`call_remote_mcp`**: Delegate specific tool execution to other connected MCP servers, turning Niplex-MCP into a Master Orchestrator.
 
 ## 🚀 Getting Started
 
@@ -65,6 +77,8 @@ The server requires the following variables to be set in the environment:
 - `DAYTONA_API_KEY`: Your Daytona API Token.
 - `NEURAL_OS_URL`: URL of the Neural-OS instance.
 - `SCRAPER_API_KEY`: API key for the scraper service.
+- `YOUTUBE_API_KEY`: Your Google YouTube Data API v3 key.
+- `YOU_COM_API_KEY`: Your You.com API key.
 
 ### Installation & Run
 ```bash
