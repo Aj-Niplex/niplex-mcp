@@ -4,6 +4,7 @@ from integrations.neural_os import NeuralOSBridge
 from integrations.scraper import WebScraperBridge
 from integrations.you_com import YouComBridge
 from integrations.mcp_bridge import MCPClientBridge
+from integrations.youtube import YoutubeBridge
 import os
 
 class MCPTools:
@@ -14,6 +15,7 @@ class MCPTools:
         self.scraper = WebScraperBridge()
         self.you_com = YouComBridge()
         self.mcp = MCPClientBridge()
+        self.youtube = YoutubeBridge()
 
     def list_files(self, path: str = "") -> str:
         return self.github.list_files(path)
@@ -50,3 +52,12 @@ class MCPTools:
 
     def call_remote_tool(self, server: str, tool: str, args: dict) -> str:
         return self.mcp.call_tool(server, tool, args)
+
+    def search_youtube(self, query: str, max_results: int = 10) -> str:
+        return self.youtube.search_videos(query, max_results)
+
+    def get_youtube_details(self, video_ids: List[str]) -> str:
+        return self.youtube.get_video_details(video_ids)
+
+    def get_youtube_channel_stats(self, channel_ids: List[str]) -> str:
+        return self.youtube.get_channel_stats(channel_ids)

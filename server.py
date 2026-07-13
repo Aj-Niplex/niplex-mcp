@@ -97,6 +97,31 @@ def call_remote_mcp(server: str, tool: str, args: str) -> str:
     except json.JSONDecodeError:
         return "Error: arguments must be a valid JSON string."
 
+@mcp.tool()
+def search_youtube(query: str, max_results: int = 10) -> str:
+    """Search for YouTube videos using token-optimized results."""
+    return tools.search_youtube(query, max_results)
+
+@mcp.tool()
+def get_youtube_details(video_ids: str) -> str:
+    """Get detailed, lean info for YouTube videos. video_ids should be a JSON list ["id1", "id2"]."""
+    import json
+    try:
+        ids = json.loads(video_ids)
+        return tools.get_youtube_details(ids)
+    except json.JSONDecodeError:
+        return "Error: video_ids must be a JSON list of strings."
+
+@mcp.tool()
+def get_youtube_channel_stats(channel_ids: str) -> str:
+    """Get lean stats for YouTube channels. channel_ids should be a JSON list ["id1", "id2"]."""
+    import json
+    try:
+        ids = json.loads(channel_ids)
+        return tools.get_youtube_channel_stats(ids)
+    except json.JSONDecodeError:
+        return "Error: channel_ids must be a JSON list of strings."
+
 if __name__ == "__main__":
     port = 7860
     mcp.run(transport="http", host="0.0.0.0", port=port)
