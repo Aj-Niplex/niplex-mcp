@@ -1,5 +1,5 @@
 import os
-from daytona_sdk import Daytona, CreateSandboxFromSnapshotParams
+from daytona import Daytona, CreateSandboxFromSnapshotParams
 
 class DaytonaBridge:
     def __init__(self, api_key: str):
