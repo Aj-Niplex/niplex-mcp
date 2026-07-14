@@ -79,7 +79,7 @@ class WebScraperBridge:
         self.api_key = os.getenv('SCRAPER_API_KEY', 'mock_key')
 
     def scrape(self, url):
-        return f"Scraped content from {url}: [Extracted content via API]"
+        return requests.get("https://r.jina.ai/" + url, timeout=30).text
 
 class NeuralOSBridge:
     def __init__(self):
