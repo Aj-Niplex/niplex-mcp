@@ -6,7 +6,7 @@ from tools.manager import MCPTools
 
 # Dependencies Bootloader
 def install_deps():
-    required = {"fastmcp": "fastmcp", "requests": "requests", "daytona": "daytona", "pymongo": "pymongo"}
+    required = {"fastmcp": "fastmcp", "requests": "requests", "daytona": "daytona", "pymongo": "pymongo", "paramiko": "paramiko"}
     for imp, pkg in required.items():
         try: __import__(imp)
         except ImportError: subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
@@ -46,6 +46,18 @@ def get_youtube_stats(ids): return tools.get_yt_stats(ids)
 
 @mcp.tool()
 def niplex_helper(q): return tools.helper(q)
+
+@mcp.tool()
+def list_hidencloud_files(path="/"): return tools.list_hidencloud_files(path)
+
+@mcp.tool()
+def read_hidencloud_file(path): return tools.read_hidencloud_file(path)
+
+@mcp.tool()
+def write_hidencloud_file(path, content): return tools.write_hidencloud_file(path, content)
+
+@mcp.tool()
+def delete_hidencloud_file(path): return tools.delete_hidencloud_file(path)
 
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=7860)
