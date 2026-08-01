@@ -1,7 +1,6 @@
 import os
 import requests
 import json
-import re
 from typing import Any
 
 class CacheService:
@@ -41,6 +40,8 @@ class YouComBridge:
         self.base_url = 'https://api.you.com/v1/search'
 
     def search(self, query, mode='web'):
+        # If a real You.com API key is set, use the official API (best quality).
+        # Otherwise fall back to a free, keyless broad search.
         if not self.api_key:
             return self._free_search(query, mode)
 
@@ -56,7 +57,19 @@ class YouComBridge:
 
     def _free_search(self, query, mode):
         '''
-        [DEPLOY-CHECK-MARKER-9981] DuckDuckGo-based free search via Jina reader.
+        Free-tier broad search, no API key needed.
+
+        NOTE: You.com's own search page requires a signed-in session and
+        returns nothing useful (login wall) for anonymous scraping — this is
+        a deliberate gate on their end. s.jina.ai (Jina's own search
+        endpoint) also now requires an API key.
+
+        So the free path goes through DuckDuckGo's server-rendered HTML
+        endpoint via Jina's reader (r.jina.ai) — no login wall, no JS
+        rendering needed, works reliably keyless. This plays the "broad
+        search" role; use scrape_website (Jina reader) on any of the
+        resulting URLs afterwards to pull full clean content from a specific
+        page.
         '''
         try:
             import urllib.parse
@@ -66,9 +79,9 @@ class YouComBridge:
             response = requests.get(jina_url, timeout=30)
             response.raise_for_status()
             text = response.text
-            return "[DEPLOY-CHECK-MARKER-9981] " + (text[:4000] if len(text) > 4000 else text)
+            return text[:4000] if len(text) > 4000 else text
         except Exception as e:
-            return f'[DEPLOY-CHECK-MARKER-9981] Free Search Error: {str(e)}'
+            return f'Free Search Error: {str(e)}'
 
 class WebScraperBridge:
     def __init__(self):
