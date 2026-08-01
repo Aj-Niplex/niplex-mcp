@@ -72,24 +72,3 @@ class GithubBridge:
             return res["error"]
         
         return f"Successfully updated {file_path} in GitHub."
-        if "sha" in current_data:
-            sha = current_data["sha"]
-        elif "error" in current_data and "404" not in current_data["error"]:
-            return current_data["error"]
-
-        # 2. Prepare the PUT request
-        import base64
-        encoded_content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-        
-        data = {
-            "message": commit_message,
-            "content": encoded_content
-        }
-        if sha:
-            data["sha"] = sha
-
-        res = self.request(endpoint, method="PUT", data=data)
-        if "error" in res:
-            return res["error"]
-        
-        return f"Successfully updated {file_path} in GitHub."
