@@ -49,30 +49,3 @@ def niplex_helper(q): return tools.helper(q)
 
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=7860)
-
-@mcp.tool()
-def scrape_website(url): return tools.scrape_web(url)
-
-@mcp.tool()
-def search_web(q, m='web'): return tools.search_web(q, m)
-
-@mcp.tool()
-def search_youtube(q, res=10): return tools.search_youtube(q, res)
-
-@mcp.tool()
-def get_youtube_details(ids):
-    import json
-    try: return tools.get_yt_details(json.loads(ids))
-    except: return "Invalid JSON list for video_ids"
-
-@mcp.tool()
-def get_youtube_stats(ids):
-    import json
-    try: return tools.get_yt_stats(json.loads(ids))
-    except: return "Invalid JSON list for channel_ids"
-
-@mcp.tool()
-def niplex_helper(q): return tools.helper(q)
-
-if __name__ == "__main__":
-    mcp.run(transport="http", host="0.0.0.0", port=7860)
