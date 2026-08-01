@@ -56,21 +56,20 @@ class YouComBridge:
 
     def _free_search(self, query, mode):
         '''
-        Implements the free-tier search flow that doesn't require an API key.
+        Free-tier search: fetches you.com's public search results page through
+        Jina's reader (r.jina.ai), which renders the JS page and returns clean
+        text. No API key required.
         '''
-        # This is a conceptual implementation of the public endpoint
-        # In a real production scenario, this would involve handling browser-like headers
-        # and potential Cloudflare bypasses for the public you.com search.
         try:
-            # Using the public search endpoint
-            url = f"https://you.com/search?q={query}"
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-            response = requests.get(url, headers=headers, timeout=30)
+            import urllib.parse
+            encoded_query = urllib.parse.quote(query)
+            target_url = f"https://you.com/search?q={encoded_query}"
+            jina_url = "https://r.jina.ai/" + target_url
+            response = requests.get(jina_url, timeout=30)
             response.raise_for_status()
-            
-            # Since public search returns HTML, we return a notice that it's in HTML mode
-            # or use a basic regex/BeautifulSoup to extract the answer.
-            return f"Free Search Result for '{query}': [HTML Content Retrieved]. Note: Full synthesis requires API key for structured JSON."
+            text = response.text
+            # Trim so callers aren't flooded with raw page content
+            return text[:3000] if len(text) > 3000 else text
         except Exception as e:
             return f'You.com Free Search Error: {str(e)}'
 
@@ -80,47 +79,3 @@ class WebScraperBridge:
 
     def scrape(self, url):
         return requests.get("https://r.jina.ai/" + url, timeout=30).text
-
-class NeuralOSBridge:
-    def __init__(self):
-        self.repo_url = os.getenv('NEURAL_OS_REPO')
-        self.github_pat = os.getenv('GITHUB_PAT')
-        self.local_path = '/tmp/neural_os_db'
-
-    def _sync(self):
-        if not self.repo_url or not self.github_pat: return False
-        auth_url = self.repo_url.replace('https://', f'https://{self.github_pat}@')
-        import subprocess
-        if not os.path.exists(self.local_path):
-            subprocess.run(['git', 'clone', auth_url, self.local_path], capture_output=True)
-        else:
-            subprocess.run(['git', '-C', self.local_path, 'pull'], capture_output=True)
-        return True
-
-    def query(self, query):
-        if not self._sync(): return 'Error: Neural-OS config missing.'
-        results = []
-        for root, _, files in os.walk(self.local_path):
-            for file in files:
-                if file.endswith('.md'):
-                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                        if query.lower() in f.read().lower():
-                            results.append(f"File: {file}\\n{f.read()}")
-        return '\\n\\n'.join(results) if results else 'No matches found.'
-
-    def update(self, key, value):
-        if not self._sync(): return 'Error: Neural-OS config missing.'
-        db_file = os.path.join(self.local_path, 'memories.json')
-        data = {}
-        if os.path.exists(db_file):
-            with open(db_file, 'r') as f:
-                try: data = json.load(f)
-                except: pass
-        data[key] = value
-        with open(db_file, 'w') as f:
-            json.dump(data, f, indent=2)
-        import subprocess
-        subprocess.run(['git', '-C', self.local_path, 'add', '.'], capture_output=True)
-        subprocess.run(['git', '-C', self.local_path, 'commit', '-m', f'Update {key}'], capture_output=True)
-        subprocess.run(['git', '-C', self.local_path, 'push'], capture_output=True)
-        return f'Updated {key} in Neural-OS.'
