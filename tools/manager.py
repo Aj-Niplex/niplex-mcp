@@ -2,6 +2,7 @@ from integrations.github import GithubBridge
 from integrations.daytona import DaytonaBridge
 from integrations.core_bridges import WebScraperBridge, YouComBridge, CacheService
 from integrations.youtube import YoutubeBridge
+from integrations.hidencloud_sftp import HidenCloudSFTPBridge
 import os
 
 class MCPTools:
@@ -11,6 +12,7 @@ class MCPTools:
         self.scraper = WebScraperBridge()
         self.you_com = YouComBridge()
         self.youtube = YoutubeBridge()
+        self.hidencloud = HidenCloudSFTPBridge()
         self.cache = CacheService()
         self.cache.connect()
 
@@ -25,3 +27,8 @@ class MCPTools:
     def get_yt_details(self, ids): return self.youtube.get_video_details(ids)
     def get_yt_stats(self, ids): return self.youtube.get_channel_stats(ids)
     def helper(self, q): return f"NIPLEX Helper: {q}"
+
+    def list_hidencloud_files(self, path="/"): return self.hidencloud.list_files(path)
+    def read_hidencloud_file(self, path): return self.hidencloud.read_file(path)
+    def write_hidencloud_file(self, path, content): return self.hidencloud.write_file(path, content)
+    def delete_hidencloud_file(self, path): return self.hidencloud.delete_file(path)
