@@ -23,6 +23,10 @@ def list_github_files(path=""): return tools.list_files(path)
 def read_github_file(path): return tools.read_file(path)
 
 @mcp.tool()
+def write_github_file(path, content, message="Update file via NIPLEX-MCP"):
+    return tools.write_file(path, content, message)
+
+@mcp.tool()
 def execute_in_sandbox(cmd, ttl=0): return tools.run_sandbox(cmd, ttl)
 
 @mcp.tool()
