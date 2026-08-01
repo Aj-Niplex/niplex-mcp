@@ -20,7 +20,8 @@ class DaytonaBridge:
             )
         
             sandbox = daytona.create(params)
-            result = sandbox.execute(command)
+            response = sandbox.process.exec(command)
+            result = response.result
         
             if ttl_minutes == 0:
                 sandbox.delete()
@@ -34,6 +35,31 @@ class DaytonaBridge:
 
     def write_file(self, file_path: str, content: str) -> str:
         try:
+            os.environ["DAYTONA_API_KEY"] = self.api_key
+            daytona = Daytona()
+            params = CreateSandboxFromSnapshotParams(auto_delete_interval=0)
+            sandbox = daytona.create(params)
+        
+            import base64
+            encoded_content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+            cmd = f"echo '{encoded_content}' | base64 -d > {file_path}"
+            response = sandbox.process.exec(cmd)
+            result = response.result
+        
+            sandbox.delete()
+            return f"Successfully wrote {file_path} to Daytona sandbox."
+        except Exception as e:
+            return f"Daytona Write Error: {str(e)}"
+
+    def delete_sandbox(self, sandbox_id: str) -> str:
+        try:
+            os.environ["DAYTONA_API_KEY"] = self.api_key
+            daytona = Daytona()
+            sandbox = daytona.get_sandbox(sandbox_id)
+            sandbox.delete()
+            return f"Sandbox {sandbox_id} has been successfully destroyed."
+        except Exception as e:
+            return f"Error deleting sandbox {sandbox_id}: {str(e)}"
             os.environ["DAYTONA_API_KEY"] = self.api_key
             daytona = Daytona()
             params = CreateSandboxFromSnapshotParams(auto_delete_interval=0)
