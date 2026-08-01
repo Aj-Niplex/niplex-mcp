@@ -30,10 +30,25 @@ def write_github_file(path, content, message="Update file via NIPLEX-MCP"):
 def execute_in_sandbox(cmd, ttl=0): return tools.run_sandbox(cmd, ttl)
 
 @mcp.tool()
-def query_neural_os(q): return tools.query_neural_os(q)
+def scrape_website(url): return tools.scrape_web(url)
 
 @mcp.tool()
-def update_neural_os(k, v): return tools.update_neural_os(k, v)
+def search_web(q, m='web'): return tools.search_web(q, m)
+
+@mcp.tool()
+def search_youtube(q, res=10): return tools.search_youtube(q, res)
+
+@mcp.tool()
+def get_youtube_details(ids): return tools.get_yt_details(ids)
+
+@mcp.tool()
+def get_youtube_stats(ids): return tools.get_yt_stats(ids)
+
+@mcp.tool()
+def niplex_helper(q): return tools.helper(q)
+
+if __name__ == "__main__":
+    mcp.run(transport="http", host="0.0.0.0", port=7860)
 
 @mcp.tool()
 def scrape_website(url): return tools.scrape_web(url)
