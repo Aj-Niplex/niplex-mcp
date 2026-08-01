@@ -43,7 +43,7 @@ class YouComBridge:
         # If no API key, we attempt the free public endpoint flow
         if not self.api_key:
             return self._free_search(query, mode)
-            
+
         headers = {'X-API-Key': self.api_key, 'Content-Type': 'application/json'}
         payload = {'query': query, 'search_type': mode}
         try:
@@ -56,22 +56,38 @@ class YouComBridge:
 
     def _free_search(self, query, mode):
         '''
-        Free-tier search: fetches you.com's public search results page through
-        Jina's reader (r.jina.ai), which renders the JS page and returns clean
-        text. No API key required.
+        Free-tier broad search, no API key needed. Tries Jina's own search
+        endpoint (s.jina.ai) first — it returns full content of top results
+        in one call and works keyless (rate-limited ~20 req/min). Falls back
+        to you.com's search page (via Jina's reader with Shadow DOM extraction
+        enabled, since you.com renders results inside Shadow DOM) if Jina
+        search itself is unavailable.
         '''
+        import urllib.parse
+        encoded_query = urllib.parse.quote(query)
+
+        # Primary: Jina's own search endpoint
         try:
-            import urllib.parse
-            encoded_query = urllib.parse.quote(query)
-            target_url = f"https://you.com/search?q={encoded_query}"
-            jina_url = "https://r.jina.ai/" + target_url
-            response = requests.get(jina_url, timeout=30)
+            s_jina_url = f"https://s.jina.ai/{encoded_query}"
+            response = requests.get(s_jina_url, timeout=30)
             response.raise_for_status()
             text = response.text
-            # Trim so callers aren't flooded with raw page content
+            if text.strip():
+                return text[:3000] if len(text) > 3000 else text
+        except Exception:
+            pass  # fall through to you.com
+
+        # Fallback: you.com search page via Jina reader, Shadow DOM enabled
+        try:
+            target_url = f"https://you.com/search?q={encoded_query}"
+            jina_url = "https://r.jina.ai/" + target_url
+            headers = {"X-With-Shadow-Dom": "true"}
+            response = requests.get(jina_url, headers=headers, timeout=30)
+            response.raise_for_status()
+            text = response.text
             return text[:3000] if len(text) > 3000 else text
         except Exception as e:
-            return f'You.com Free Search Error: {str(e)}'
+            return f'Free Search Error: {str(e)}'
 
 class WebScraperBridge:
     def __init__(self):
