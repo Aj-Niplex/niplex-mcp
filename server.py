@@ -59,5 +59,14 @@ def write_hidencloud_file(path, content): return tools.write_hidencloud_file(pat
 @mcp.tool()
 def delete_hidencloud_file(path): return tools.delete_hidencloud_file(path)
 
+@mcp.tool()
+def e2b_run_code(code, language="python"): return tools.e2b_run_code(code, language)
+
+@mcp.tool()
+def e2b_screenshot(): return tools.e2b_screenshot()
+
+@mcp.tool()
+def e2b_computer_use(actions): return tools.e2b_computer_use(actions)
+
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=7860)
