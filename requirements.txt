@@ -3,3 +3,5 @@ requests
 daytona
 pymongo
 paramiko
+e2b-code-interpreter
+e2b-desktop
