@@ -46,7 +46,7 @@ class E2BBridge:
             return "E2B_API_KEY not configured."
         try:
             from e2b_desktop import Sandbox
-            desktop = Sandbox(api_key=self.api_key, timeout=120)
+            desktop = Sandbox.create(api_key=self.api_key, timeout=120)
             try:
                 image_bytes = desktop.screenshot()
                 return base64.b64encode(image_bytes).decode("utf-8")
@@ -71,7 +71,7 @@ class E2BBridge:
         try:
             from e2b_desktop import Sandbox
             import time
-            desktop = Sandbox(api_key=self.api_key, timeout=180)
+            desktop = Sandbox.create(api_key=self.api_key, timeout=180)
             log = []
             try:
                 for action in actions:
