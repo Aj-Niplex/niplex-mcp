@@ -68,5 +68,32 @@ def e2b_screenshot(): return tools.e2b_screenshot()
 @mcp.tool()
 def e2b_computer_use(actions): return tools.e2b_computer_use(actions)
 
+@mcp.tool()
+def git_create_branch(branch_name, from_branch="main"): return tools.git_create_branch(branch_name, from_branch)
+
+@mcp.tool()
+def git_list_branches(): return tools.git_list_branches()
+
+@mcp.tool()
+def git_list_commits(branch="main", limit=10): return tools.git_list_commits(branch, limit)
+
+@mcp.tool()
+def git_get_commit(sha): return tools.git_get_commit(sha)
+
+@mcp.tool()
+def git_create_issue(title, body="", labels=None): return tools.git_create_issue(title, body, labels)
+
+@mcp.tool()
+def git_list_issues(state="open"): return tools.git_list_issues(state)
+
+@mcp.tool()
+def git_add_issue_comment(issue_number, comment): return tools.git_add_issue_comment(issue_number, comment)
+
+@mcp.tool()
+def git_create_pull_request(title, head, base="main", body=""): return tools.git_create_pull_request(title, head, base, body)
+
+@mcp.tool()
+def git_list_pull_requests(state="open"): return tools.git_list_pull_requests(state)
+
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=7860)
