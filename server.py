@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 from fastmcp import FastMCP
-from tools.manager import MCPTools
+from tools.manager import Router
 
 # Dependencies Bootloader
 def install_deps():
@@ -14,86 +14,27 @@ def install_deps():
 install_deps()
 
 mcp = FastMCP("NIPLEX-MCP")
-tools = MCPTools()
+router = Router()
 
 @mcp.tool()
-def list_github_files(path=""): return tools.list_files(path)
+def list_namespaces(namespace: str = None):
+    """
+    Discover available tool namespaces, or (with a namespace given) the
+    full tool list + argument docs for that one namespace.
+    Namespaces: git, sandbox, sftp, search, yt, misc.
+    Call with no args first to see what's available.
+    """
+    return router.list_namespaces(namespace)
 
 @mcp.tool()
-def read_github_file(path): return tools.read_file(path)
-
-@mcp.tool()
-def write_github_file(path, content, message="Update file via NIPLEX-MCP"):
-    return tools.write_file(path, content, message)
-
-@mcp.tool()
-def execute_in_sandbox(cmd, ttl=0): return tools.run_sandbox(cmd, ttl)
-
-@mcp.tool()
-def scrape_website(url): return tools.scrape_web(url)
-
-@mcp.tool()
-def search_web(q, m='web'): return tools.search_web(q, m)
-
-@mcp.tool()
-def search_youtube(q, res=10): return tools.search_youtube(q, res)
-
-@mcp.tool()
-def get_youtube_details(ids): return tools.get_yt_details(ids)
-
-@mcp.tool()
-def get_youtube_stats(ids): return tools.get_yt_stats(ids)
-
-@mcp.tool()
-def niplex_helper(q): return tools.helper(q)
-
-@mcp.tool()
-def list_hidencloud_files(path="/"): return tools.list_hidencloud_files(path)
-
-@mcp.tool()
-def read_hidencloud_file(path): return tools.read_hidencloud_file(path)
-
-@mcp.tool()
-def write_hidencloud_file(path, content): return tools.write_hidencloud_file(path, content)
-
-@mcp.tool()
-def delete_hidencloud_file(path): return tools.delete_hidencloud_file(path)
-
-@mcp.tool()
-def e2b_run_code(code, language="python"): return tools.e2b_run_code(code, language)
-
-@mcp.tool()
-def e2b_screenshot(): return tools.e2b_screenshot()
-
-@mcp.tool()
-def e2b_computer_use(actions): return tools.e2b_computer_use(actions)
-
-@mcp.tool()
-def git_create_branch(branch_name, from_branch="main"): return tools.git_create_branch(branch_name, from_branch)
-
-@mcp.tool()
-def git_list_branches(): return tools.git_list_branches()
-
-@mcp.tool()
-def git_list_commits(branch="main", limit=10): return tools.git_list_commits(branch, limit)
-
-@mcp.tool()
-def git_get_commit(sha): return tools.git_get_commit(sha)
-
-@mcp.tool()
-def git_create_issue(title, body="", labels=None): return tools.git_create_issue(title, body, labels)
-
-@mcp.tool()
-def git_list_issues(state="open"): return tools.git_list_issues(state)
-
-@mcp.tool()
-def git_add_issue_comment(issue_number, comment): return tools.git_add_issue_comment(issue_number, comment)
-
-@mcp.tool()
-def git_create_pull_request(title, head, base="main", body=""): return tools.git_create_pull_request(title, head, base, body)
-
-@mcp.tool()
-def git_list_pull_requests(state="open"): return tools.git_list_pull_requests(state)
+def call_tool(namespace: str, tool: str, **kwargs):
+    """
+    Call any tool in any namespace. Use list_namespaces first to discover
+    valid namespace/tool/argument combinations.
+    Example: call_tool(namespace="git", tool="list_repos")
+    Example: call_tool(namespace="sandbox", tool="execute_in_sandbox", cmd="echo hi")
+    """
+    return router.call_tool(namespace, tool, **kwargs)
 
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=7860)
