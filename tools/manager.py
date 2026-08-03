@@ -4,13 +4,14 @@ from tools.managers.sftp_manager import SftpManager
 from tools.managers.search_manager import SearchManager
 from tools.managers.youtube_manager import YoutubeManager
 from tools.managers.misc_manager import MiscManager
+from tools.managers.google_manager import GoogleManager
 
 
 class Router:
     """
     Thin orchestrator. Does not contain business logic itself — every real
     operation lives in a specialist manager (tools/managers/*.py), each
-    owning one domain (git, sandbox, sftp, search, yt, misc).
+    owning one domain (git, sandbox, sftp, search, yt, misc, google).
 
     Exposes exactly two entry points to the outside world:
       - list_namespaces(): what domains/tools exist, without loading them all
@@ -30,6 +31,7 @@ class Router:
             "search": SearchManager,
             "yt": YoutubeManager,
             "misc": MiscManager,
+            "google": GoogleManager,
         }
 
     def _get_manager(self, namespace: str):
@@ -55,6 +57,7 @@ class Router:
                 "search": "Broad web search + targeted webpage scraping/extraction.",
                 "yt": "YouTube search and metadata via the YouTube Data API.",
                 "misc": "Small standalone utilities.",
+                "google": "Gmail (search/read/draft, no direct send), Calendar, Drive & Docs.",
             }
         mgr = self._get_manager(namespace)
         if mgr is None:
