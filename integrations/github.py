@@ -88,6 +88,23 @@ class GithubBridge:
         names = [r["name"] for r in data]
         return "\n".join(names) if names else "No repositories found."
 
+    def create_repo(self, name: str, private: bool = True, description: str = "", auto_init: bool = True) -> str:
+        """Create a new repository under self.user.
+        auto_init=True adds a README so the repo isn't empty (avoids
+        push/clone edge cases when a deploy target expects an existing branch)."""
+        endpoint = "user/repos"
+        data = {
+            "name": name,
+            "private": private,
+            "description": description,
+            "auto_init": auto_init,
+        }
+        res = self.request(endpoint, method="POST", data=data)
+        if isinstance(res, dict) and "error" in res:
+            return res["error"]
+        visibility = "private" if private else "public"
+        return f"Repository '{name}' created ({visibility}): {res.get('html_url', '')}"
+
     # ---------- Branches ----------
 
     def create_branch(self, repo: str, branch_name: str, from_branch: str = "main") -> str:
