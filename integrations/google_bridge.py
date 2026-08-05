@@ -8,13 +8,19 @@ class GoogleWorkspaceBridge:
     """
     Gmail + Calendar + Drive/Docs, multi-account.
 
-    Each account ("professional", "personal", "company") has its own OAuth
-    Client (from the same Google Cloud project) and its own token, stored as
+    Each account ("professional", "personal") has its own OAuth Client
+    (from the same Google Cloud project) and its own token, stored as
     separate env var pairs:
         GOOGLE_<ACCOUNT>_CREDENTIALS_JSON
         GOOGLE_<ACCOUNT>_TOKEN_JSON
 
     e.g. GOOGLE_PROFESSIONAL_CREDENTIALS_JSON / GOOGLE_PROFESSIONAL_TOKEN_JSON
+
+    NOTE: a third account ("company", niplex.owner@gmail.com) was
+    deliberately deferred — no inbound mail/website yet, so no need to
+    wire it up until it's actually needed. Re-adding it later is just
+    adding "company" back to VALID_ACCOUNTS below plus its own OAuth
+    client + 2 env vars.
 
     NOTE ON FIRST-TIME AUTH: each account needs its own one-time OAuth
     consent (headless server can't open a browser) — done once per account
@@ -31,7 +37,7 @@ class GoogleWorkspaceBridge:
         "https://www.googleapis.com/auth/documents",
     ]
 
-    VALID_ACCOUNTS = ("professional", "personal", "company")
+    VALID_ACCOUNTS = ("professional", "personal")
 
     def __init__(self, account: str):
         if account not in self.VALID_ACCOUNTS:
