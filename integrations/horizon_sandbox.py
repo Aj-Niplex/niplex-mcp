@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import Any, Dict, List
 
 from fastmcp import Client
@@ -13,10 +14,16 @@ class HorizonSandboxBridge:
     Unlike GithubBridge/DaytonaBridge (plain REST via `requests`), this
     target is itself an MCP server, so we connect as an MCP *client*
     using fastmcp.Client rather than hitting a REST endpoint directly.
+
+    Horizon enforces OAuth 2.1 on free-tier servers, but a plain Bearer
+    token works fine for service-account-style access — pass it as a
+    string to Client(auth=...) and FastMCP formats the Authorization
+    header automatically.
     """
 
-    def __init__(self, url: str = "https://sandbox.fastmcp.app/mcp"):
+    def __init__(self, url: str = "https://sandbox.fastmcp.app/mcp", token: str = None):
         self.url = url
+        self.token = token or os.environ.get("HORIZON_SANDBOX_TOKEN")
 
     def _run_async(self, coro):
         """FastMCP's Client is async-only; our manager/call() layer is
@@ -26,11 +33,13 @@ class HorizonSandboxBridge:
         return asyncio.run(coro)
 
     async def _call_tool(self, tool_name: str, **kwargs) -> Any:
-        async with Client(self.url) as client:
+        async with Client(self.url, auth=self.token) as client:
             result = await client.call_tool(tool_name, kwargs)
             return result
 
     def run_code(self, code: str, language: str = "python") -> Dict:
+        if not self.token:
+            return {"error": "HORIZON_SANDBOX_TOKEN not set."}
         try:
             result = self._run_async(self._call_tool("run_code", code=code, language=language))
             # FastMCP client returns a CallToolResult; unwrap to the
@@ -44,6 +53,8 @@ class HorizonSandboxBridge:
             return {"error": f"Horizon sandbox call failed: {e}"}
 
     def health(self) -> str:
+        if not self.token:
+            return "HORIZON_SANDBOX_TOKEN not set."
         try:
             result = self._run_async(self._call_tool("health"))
             if hasattr(result, "data"):
