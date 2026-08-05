@@ -6,19 +6,20 @@ from email.mime.text import MIMEText
 
 class GoogleWorkspaceBridge:
     """
-    Gmail + Calendar + Drive/Docs via a single Desktop App OAuth flow.
+    Gmail + Calendar + Drive/Docs, multi-account.
 
-    Credentials come from GOOGLE_CREDENTIALS_JSON (the raw contents of a
-    Desktop App credentials.json downloaded from Google Cloud Console) and
-    GOOGLE_TOKEN_JSON (the stored OAuth token after first-time auth — see
-    NOTE below on first-run setup).
+    Each account ("professional", "personal", "company") has its own OAuth
+    Client (from the same Google Cloud project) and its own token, stored as
+    separate env var pairs:
+        GOOGLE_<ACCOUNT>_CREDENTIALS_JSON
+        GOOGLE_<ACCOUNT>_TOKEN_JSON
 
-    NOTE ON FIRST-TIME AUTH: Desktop App OAuth normally opens a browser for
-    consent. Since this runs headless on Horizon, first-time authorization
-    must happen once, locally (e.g. in a Daytona/local sandbox with a
-    browser), producing a token.json — that token's contents then go into
-    GOOGLE_TOKEN_JSON. After that, this bridge silently refreshes the token
-    using the refresh_token, no browser needed.
+    e.g. GOOGLE_PROFESSIONAL_CREDENTIALS_JSON / GOOGLE_PROFESSIONAL_TOKEN_JSON
+
+    NOTE ON FIRST-TIME AUTH: each account needs its own one-time OAuth
+    consent (headless server can't open a browser) — done once per account
+    via a local/sandbox script, producing that account's token.json content
+    for GOOGLE_<ACCOUNT>_TOKEN_JSON. After that, refresh is automatic.
     """
 
     SCOPES = [
@@ -30,18 +31,24 @@ class GoogleWorkspaceBridge:
         "https://www.googleapis.com/auth/documents",
     ]
 
-    def __init__(self):
-        self.creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
-        self.token_json = os.environ.get("GOOGLE_TOKEN_JSON")
+    VALID_ACCOUNTS = ("professional", "personal", "company")
+
+    def __init__(self, account: str):
+        if account not in self.VALID_ACCOUNTS:
+            raise ValueError(f"Unknown account '{account}'. Must be one of {self.VALID_ACCOUNTS}.")
+        self.account = account
+        prefix = f"GOOGLE_{account.upper()}_"
+        self.creds_json = os.environ.get(prefix + "CREDENTIALS_JSON")
+        self.token_json = os.environ.get(prefix + "TOKEN_JSON")
         self._creds = None
 
     def _get_credentials(self):
         if self._creds is not None:
             return self._creds, None
         if not self.creds_json:
-            return None, "GOOGLE_CREDENTIALS_JSON not configured."
+            return None, f"GOOGLE_{self.account.upper()}_CREDENTIALS_JSON not configured."
         if not self.token_json:
-            return None, "GOOGLE_TOKEN_JSON not configured (one-time OAuth not completed yet)."
+            return None, f"GOOGLE_{self.account.upper()}_TOKEN_JSON not configured (one-time OAuth not completed yet for '{self.account}')."
         try:
             from google.oauth2.credentials import Credentials
             from google.auth.transport.requests import Request
@@ -55,7 +62,7 @@ class GoogleWorkspaceBridge:
             self._creds = creds
             return creds, None
         except Exception as e:
-            return None, f"Google auth error: {str(e)}"
+            return None, f"Google auth error ({self.account}): {str(e)}"
 
     # ---------- Gmail ----------
 
@@ -117,16 +124,14 @@ class GoogleWorkspaceBridge:
             message["subject"] = subject
             raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
             draft = service.users().drafts().create(userId="me", body={"message": {"raw": raw}}).execute()
-            return f"Draft created (id: {draft['id']}) to {to}, subject: {subject}"
+            return f"Draft created (id: {draft['id']}) to {to}, subject: {subject}, from account: {self.account}"
         except Exception as e:
             return f"Gmail draft error: {str(e)}"
 
     def send_email(self, to: str, subject: str, body: str) -> str:
         """
         Direct-send. NOT wired to a tool by default — create_draft is the
-        default path for anything AI-composed. Left implemented here in
-        case it's explicitly needed later, with a clear confirmation step
-        required at the call site.
+        default path for anything AI-composed.
         """
         creds, err = self._get_credentials()
         if err:
@@ -139,7 +144,7 @@ class GoogleWorkspaceBridge:
             message["subject"] = subject
             raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
             sent = service.users().messages().send(userId="me", body={"raw": raw}).execute()
-            return f"Email sent (id: {sent['id']}) to {to}, subject: {subject}"
+            return f"Email sent (id: {sent['id']}) to {to}, subject: {subject}, from account: {self.account}"
         except Exception as e:
             return f"Gmail send error: {str(e)}"
 
