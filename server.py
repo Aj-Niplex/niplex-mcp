@@ -36,6 +36,10 @@ def git_list_repos():
     return git.call("list_repos")
 
 @mcp.tool()
+def git_create_repo(name: str, private: bool = True, description: str = "", auto_init: bool = True):
+    return git.call("create_repo", name=name, private=private, description=description, auto_init=auto_init)
+
+@mcp.tool()
 def list_github_files(repo: str = "niplex-mcp", path: str = ""):
     return git.call("list_files", repo=repo, path=path)
 
