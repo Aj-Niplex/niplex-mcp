@@ -153,43 +153,43 @@ def get_youtube_stats(ids: list):
 def niplex_helper(q: str):
     return misc.call("helper", q=q)
 
-# ---------- google ----------
+# ---------- google (account = "professional" | "personal" | "company") ----------
 
 @mcp.tool()
-def gmail_search(query: str, max_results: int = 10):
-    return google.call("search_emails", query=query, max_results=max_results)
+def gmail_search(account: str, query: str, max_results: int = 10):
+    return google.call("search_emails", account=account, query=query, max_results=max_results)
 
 @mcp.tool()
-def gmail_get_thread(thread_id: str):
-    return google.call("get_thread_details", thread_id=thread_id)
+def gmail_get_thread(account: str, thread_id: str):
+    return google.call("get_thread_details", account=account, thread_id=thread_id)
 
 @mcp.tool()
-def gmail_create_draft(to: str, subject: str, body: str):
-    return google.call("create_draft", to=to, subject=subject, body=body)
+def gmail_create_draft(account: str, to: str, subject: str, body: str):
+    return google.call("create_draft", account=account, to=to, subject=subject, body=body)
 
 @mcp.tool()
-def calendar_list_events(time_min: str = None, time_max: str = None, max_results: int = 10):
-    return google.call("list_events", time_min=time_min, time_max=time_max, max_results=max_results)
+def calendar_list_events(account: str, time_min: str = None, time_max: str = None, max_results: int = 10):
+    return google.call("list_events", account=account, time_min=time_min, time_max=time_max, max_results=max_results)
 
 @mcp.tool()
-def calendar_create_event(summary: str, start_time: str, end_time: str, description: str = "", attendees: list = None):
-    return google.call("create_event", summary=summary, start_time=start_time, end_time=end_time, description=description, attendees=attendees)
+def calendar_create_event(account: str, summary: str, start_time: str, end_time: str, description: str = "", attendees: list = None):
+    return google.call("create_event", account=account, summary=summary, start_time=start_time, end_time=end_time, description=description, attendees=attendees)
 
 @mcp.tool()
-def calendar_update_event(event_id: str, summary: str = None, start_time: str = None, end_time: str = None, status: str = None):
-    return google.call("update_event", event_id=event_id, summary=summary, start_time=start_time, end_time=end_time, status=status)
+def calendar_update_event(account: str, event_id: str, summary: str = None, start_time: str = None, end_time: str = None, status: str = None):
+    return google.call("update_event", account=account, event_id=event_id, summary=summary, start_time=start_time, end_time=end_time, status=status)
 
 @mcp.tool()
-def drive_search_files(query: str, max_results: int = 10):
-    return google.call("search_files", query=query, max_results=max_results)
+def drive_search_files(account: str, query: str, max_results: int = 10):
+    return google.call("search_files", account=account, query=query, max_results=max_results)
 
 @mcp.tool()
-def docs_read(doc_id: str):
-    return google.call("read_doc", doc_id=doc_id)
+def docs_read(account: str, doc_id: str):
+    return google.call("read_doc", account=account, doc_id=doc_id)
 
 @mcp.tool()
-def docs_create(title: str, content: str = ""):
-    return google.call("create_doc", title=title, content=content)
+def docs_create(account: str, title: str, content: str = ""):
+    return google.call("create_doc", account=account, title=title, content=content)
 
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=7860)
