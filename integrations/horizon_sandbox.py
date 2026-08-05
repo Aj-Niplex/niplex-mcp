@@ -23,7 +23,7 @@ class HorizonSandboxBridge:
 
     def __init__(self, url: str = "https://sandbox.fastmcp.app/mcp", token: str = None):
         self.url = url
-        self.token = token or os.environ.get("HORIZON_SANDBOX_TOKEN")
+        self.token = token or os.environ.get("SANDBOX_TOKEN")
 
     def _run_async(self, coro):
         """FastMCP's Client is async-only; our manager/call() layer is
@@ -39,7 +39,7 @@ class HorizonSandboxBridge:
 
     def run_code(self, code: str, language: str = "python") -> Dict:
         if not self.token:
-            return {"error": "HORIZON_SANDBOX_TOKEN not set."}
+            return {"error": "SANDBOX_TOKEN not set."}
         try:
             result = self._run_async(self._call_tool("run_code", code=code, language=language))
             # FastMCP client returns a CallToolResult; unwrap to the
@@ -54,7 +54,7 @@ class HorizonSandboxBridge:
 
     def health(self) -> str:
         if not self.token:
-            return "HORIZON_SANDBOX_TOKEN not set."
+            return "SANDBOX_TOKEN not set."
         try:
             result = self._run_async(self._call_tool("health"))
             if hasattr(result, "data"):
