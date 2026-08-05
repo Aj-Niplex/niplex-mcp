@@ -13,6 +13,7 @@ class GitManager:
             "description": "GitHub repository, file, branch, commit, issue, and PR operations across all your repos.",
             "tools": {
                 "list_repos": "List all repositories under your account.",
+                "create_repo": "Create a new repository. Args: name, private (default True), description (optional), auto_init (default True).",
                 "list_files": "List files/dirs in a repo path. Args: repo (default 'niplex-mcp'), path (default '').",
                 "read_file": "Read a file's content. Args: repo, file_path.",
                 "write_file": "Create/update a file with a commit. Args: repo, file_path, content, commit_message, branch (optional).",
