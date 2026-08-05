@@ -109,6 +109,14 @@ def e2b_screenshot():
 def e2b_computer_use(actions: list):
     return sandbox.call("e2b_computer_use", actions=actions)
 
+@mcp.tool()
+def horizon_run_code(code: str, language: str = "python"):
+    return sandbox.call("horizon_run_code", code=code, language=language)
+
+@mcp.tool()
+def horizon_health():
+    return sandbox.call("horizon_health")
+
 # ---------- sftp ----------
 
 @mcp.tool()
