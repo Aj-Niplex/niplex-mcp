@@ -1,4 +1,5 @@
 import os
+import shlex
 from daytona import Daytona, CreateSandboxFromSnapshotParams
 
 class DaytonaBridge:
@@ -42,7 +43,9 @@ class DaytonaBridge:
 
             import base64
             encoded_content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-            cmd = f"echo '{encoded_content}' | base64 -d > {file_path}"
+            # shlex.quote prevents shell injection via file_path
+            safe_path = shlex.quote(file_path)
+            cmd = f"echo '{encoded_content}' | base64 -d > {safe_path}"
             response = sandbox.process.exec(cmd)
             result = response.result
 
