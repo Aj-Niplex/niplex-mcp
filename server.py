@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 from fastmcp import FastMCP
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 from tools.managers.git_manager import GitManager
 from tools.managers.sandbox_manager import SandboxManager
 from tools.managers.sftp_manager import SftpManager
@@ -19,7 +21,29 @@ def install_deps():
 
 install_deps()
 
+# ---------- API Key Auth Middleware ----------
+# Every request must include:  Authorization: Bearer <MCP_API_KEY>
+# Set MCP_API_KEY in Horizon environment variables.
+# Claude's custom connector sends this automatically once you add it to the
+# connector's auth configuration on claude.ai.
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        expected = os.environ.get("MCP_API_KEY", "")
+        if not expected:
+            # If no key is configured, block everything — fail secure.
+            return JSONResponse({"error": "MCP_API_KEY not configured on server."}, status_code=503)
+
+        auth_header = request.headers.get("Authorization", "")
+        token = auth_header.removeprefix("Bearer ").strip()
+
+        if token != expected:
+            return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+        return await call_next(request)
+
 mcp = FastMCP("NIPLEX-MCP")
+mcp.http_app().add_middleware(APIKeyMiddleware)
 
 git = GitManager()
 sandbox = SandboxManager()
@@ -165,7 +189,7 @@ def get_youtube_stats(ids: list):
 def niplex_helper(q: str):
     return misc.call("helper", q=q)
 
-# ---------- google (account = "professional" | "personal" | "company") ----------
+# ---------- google ----------
 
 @mcp.tool()
 def gmail_search(account: str, query: str, max_results: int = 10):
