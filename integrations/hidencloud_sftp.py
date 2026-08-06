@@ -1,14 +1,18 @@
 import os
-import io
 import stat
 import paramiko
+
+# All SFTP operations are confined to this base directory.
+# Callers cannot escape it via path traversal (e.g. ../../etc).
+SFTP_BASE_DIR = "/home"
 
 
 class HidenCloudSFTPBridge:
     """
     File-only bridge to a HidenCloud (Pterodactyl) server via SFTP.
     No shell/terminal access — this only reads, writes, lists, and deletes
-    files. Code should be proven working in the Daytona sandbox first, then
+    files. All paths are confined to SFTP_BASE_DIR to prevent traversal.
+    Code should be proven working in the Daytona sandbox first, then
     pushed here for actual deployment.
     """
 
@@ -17,6 +21,18 @@ class HidenCloudSFTPBridge:
         self.port = int(os.environ.get("HIDENCLOUD_SFTP_PORT", 2022))
         self.user = os.environ.get("HIDENCLOUD_SFTP_USER")
         self.password = os.environ.get("HIDENCLOUD_SFTP_PASSWORD")
+
+    def _safe_path(self, path: str) -> tuple:
+        """
+        Resolve path relative to SFTP_BASE_DIR and ensure it stays inside.
+        Returns (resolved_path, error_string_or_None).
+        """
+        # Normalise: strip leading slash so os.path.join works predictably
+        clean = os.path.normpath("/" + path.lstrip("/"))
+        full = os.path.normpath(os.path.join(SFTP_BASE_DIR, clean.lstrip("/")))
+        if not full.startswith(SFTP_BASE_DIR):
+            return None, f"Access denied: path '{path}' escapes the allowed base directory."
+        return full, None
 
     def _connect(self):
         if not all([self.host, self.user, self.password]):
@@ -30,12 +46,15 @@ class HidenCloudSFTPBridge:
             return None, f"SFTP connection failed: {str(e)}"
 
     def list_files(self, path: str = "/") -> str:
+        safe, err = self._safe_path(path)
+        if err:
+            return err
         conn, err = self._connect()
         if err:
             return err
         sftp, transport = conn
         try:
-            entries = sftp.listdir_attr(path)
+            entries = sftp.listdir_attr(safe)
             lines = []
             for entry in entries:
                 kind = "DIR " if stat.S_ISDIR(entry.st_mode) else "FILE"
@@ -48,12 +67,15 @@ class HidenCloudSFTPBridge:
             transport.close()
 
     def read_file(self, path: str) -> str:
+        safe, err = self._safe_path(path)
+        if err:
+            return err
         conn, err = self._connect()
         if err:
             return err
         sftp, transport = conn
         try:
-            with sftp.open(path, "r") as f:
+            with sftp.open(safe, "r") as f:
                 content = f.read()
             if isinstance(content, bytes):
                 try:
@@ -68,18 +90,20 @@ class HidenCloudSFTPBridge:
             transport.close()
 
     def write_file(self, path: str, content: str) -> str:
+        safe, err = self._safe_path(path)
+        if err:
+            return err
         conn, err = self._connect()
         if err:
             return err
         sftp, transport = conn
         try:
-            # Ensure parent directories exist
-            parent = "/".join(path.split("/")[:-1])
-            if parent:
+            parent = os.path.dirname(safe)
+            if parent and parent != SFTP_BASE_DIR:
                 self._ensure_dir(sftp, parent)
-            with sftp.open(path, "w") as f:
+            with sftp.open(safe, "w") as f:
                 f.write(content)
-            return f"Successfully wrote {path} to HidenCloud."
+            return f"Successfully wrote {safe} to HidenCloud."
         except Exception as e:
             return f"Write error: {str(e)}"
         finally:
@@ -87,13 +111,16 @@ class HidenCloudSFTPBridge:
             transport.close()
 
     def delete_file(self, path: str) -> str:
+        safe, err = self._safe_path(path)
+        if err:
+            return err
         conn, err = self._connect()
         if err:
             return err
         sftp, transport = conn
         try:
-            sftp.remove(path)
-            return f"Successfully deleted {path} from HidenCloud."
+            sftp.remove(safe)
+            return f"Successfully deleted {safe} from HidenCloud."
         except Exception as e:
             return f"Delete error: {str(e)}"
         finally:
@@ -101,10 +128,13 @@ class HidenCloudSFTPBridge:
             transport.close()
 
     def _ensure_dir(self, sftp, path: str):
-        dirs = path.strip("/").split("/")
-        current = ""
-        for d in dirs:
-            current += f"/{d}"
+        """Recursively create directories, confined to SFTP_BASE_DIR."""
+        parts = path.replace(SFTP_BASE_DIR, "").strip("/").split("/")
+        current = SFTP_BASE_DIR
+        for part in parts:
+            if not part:
+                continue
+            current = f"{current}/{part}"
             try:
                 sftp.stat(current)
             except FileNotFoundError:
