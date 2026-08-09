@@ -166,10 +166,19 @@ class GoogleWorkspaceBridge:
             service = build("calendar", "v3", credentials=creds)
             if not time_min:
                 time_min = datetime.datetime.utcnow().isoformat() + "Z"
-            events_result = service.events().list(
-                calendarId="primary", timeMin=time_min, timeMax=time_max,
-                maxResults=max_results, singleEvents=True, orderBy="startTime"
-            ).execute()
+            list_kwargs = {
+                "calendarId": "primary",
+                "timeMin": time_min,
+                "maxResults": max_results,
+                "singleEvents": True,
+                "orderBy": "startTime",
+            }
+            # Only include timeMax when actually provided — an empty
+            # string is not a valid RFC3339 timestamp and the Calendar
+            # API rejects it with a 400, even though timeMax is optional.
+            if time_max:
+                list_kwargs["timeMax"] = time_max
+            events_result = service.events().list(**list_kwargs).execute()
             events = events_result.get("items", [])
             if not events:
                 return "No upcoming events found."
