@@ -105,6 +105,29 @@ class GithubBridge:
         visibility = "private" if private else "public"
         return f"Repository '{name}' created ({visibility}): {res.get('html_url', '')}"
 
+    def update_repo_settings(self, repo: str, new_name: Optional[str] = None, private: Optional[bool] = None, description: Optional[str] = None) -> str:
+        """Rename a repo and/or change its visibility/description.
+        Only the fields you pass are changed — everything else stays as-is.
+        NOTE: renaming does not break existing clones/remotes (GitHub keeps a
+        redirect), but any hardcoded URLs referencing the old name (e.g. in
+        Horizon's deploy config) will need manual updating."""
+        endpoint = f"repos/{self.user}/{repo}"
+        data = {}
+        if new_name is not None:
+            data["name"] = new_name
+        if private is not None:
+            data["private"] = private
+        if description is not None:
+            data["description"] = description
+        if not data:
+            return "No changes specified."
+        res = self.request(endpoint, method="PATCH", data=data)
+        if isinstance(res, dict) and "error" in res:
+            return res["error"]
+        final_name = res.get("name", repo)
+        visibility = "private" if res.get("private") else "public"
+        return f"Repo updated: now named '{final_name}', visibility: {visibility}."
+
     # ---------- Branches ----------
 
     def create_branch(self, repo: str, branch_name: str, from_branch: str = "main") -> str:
