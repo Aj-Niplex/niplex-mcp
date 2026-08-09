@@ -4,7 +4,15 @@ import paramiko
 
 # All SFTP operations are confined to this base directory.
 # Callers cannot escape it via path traversal (e.g. ../../etc).
-SFTP_BASE_DIR = "/home"
+#
+# NOTE: HidenCloud's SFTP is Pterodactyl-based, which already chroots each
+# session to that server's own data directory — so from the client's view,
+# "/" IS the confined root. There is no separate "/home" to descend into;
+# prepending one caused every lookup (e.g. listing "/") to resolve to a
+# non-existent nested directory and fail with a generic SFTP "failure".
+# Path-traversal safety still holds: _safe_path normalizes with a leading
+# "/" before joining, so a ".." can never resolve above this root.
+SFTP_BASE_DIR = "/"
 
 
 class HidenCloudSFTPBridge:
