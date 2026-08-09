@@ -23,8 +23,11 @@ class NeuralBridge:
 
         async def _call():
             from fastmcp import Client
-            headers = {"Authorization": f"Bearer {self.api_key}"}
-            async with Client(self.url, headers=headers) as client:
+            # Current fastmcp versions don't accept `headers=` on the
+            # top-level Client constructor — bearer tokens go through the
+            # `auth` parameter instead, which fastmcp formats into the
+            # Authorization header for us.
+            async with Client(self.url, auth=self.api_key) as client:
                 result = await client.call_tool(tool_name, kwargs)
                 return result.content[0].text if result.content else str(result)
 
