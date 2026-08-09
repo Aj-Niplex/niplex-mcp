@@ -8,10 +8,9 @@ import paramiko
 # NOTE: HidenCloud's SFTP is Pterodactyl-based, which already chroots each
 # session to that server's own data directory — so from the client's view,
 # "/" IS the confined root. There is no separate "/home" to descend into;
-# prepending one caused every lookup (e.g. listing "/") to resolve to a
-# non-existent nested directory and fail with a generic SFTP "failure".
-# Path-traversal safety still holds: _safe_path normalizes with a leading
-# "/" before joining, so a ".." can never resolve above this root.
+# prepending one caused every lookup to resolve to a non-existent nested
+# directory. Path-traversal safety still holds: _safe_path normalizes with
+# a leading "/" before joining, so a ".." can never resolve above this root.
 SFTP_BASE_DIR = "/"
 
 
@@ -42,6 +41,17 @@ class HidenCloudSFTPBridge:
             return None, f"Access denied: path '{path}' escapes the allowed base directory."
         return full, None
 
+    def _sftp_path(self, safe: str) -> str:
+        """
+        This server's SFTP implementation fails to resolve a literal '/'
+        root for directory listing (confirmed: listdir_attr('/') returns
+        a generic SSH_FX_FAILURE, while absolute paths to actual files
+        resolve correctly). '.' — the session's own starting directory,
+        which for a chrooted SFTP session IS that root — works reliably
+        instead, so translate only that one case.
+        """
+        return "." if safe == "/" else safe
+
     def _connect(self):
         if not all([self.host, self.user, self.password]):
             return None, "HidenCloud SFTP env vars not fully configured (HIDENCLOUD_SFTP_HOST/USER/PASSWORD)."
@@ -62,7 +72,7 @@ class HidenCloudSFTPBridge:
             return err
         sftp, transport = conn
         try:
-            entries = sftp.listdir_attr(safe)
+            entries = sftp.listdir_attr(self._sftp_path(safe))
             lines = []
             for entry in entries:
                 kind = "DIR " if stat.S_ISDIR(entry.st_mode) else "FILE"
