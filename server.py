@@ -68,6 +68,15 @@ def git_create_repo(name: str, private: bool = True, description: str = "", auto
     return git.call("create_repo", name=name, private=private, description=description, auto_init=auto_init)
 
 @mcp.tool()
+def git_update_repo_settings(repo: str, new_name: str = None, private: bool = None, description: str = None):
+    """Rename a repo and/or change its visibility/description. Only the fields you pass are changed.
+    Args: repo (current name), new_name (optional new name), private (optional True/False), description (optional).
+    Use this to archive old/unused repos: rename to something clear like 'archived-<name>' and set private=True.
+    NOTE: GitHub keeps redirects for renamed repos, but any hardcoded URL referencing the old name (e.g. in a
+    deploy config) will need manual updating. Confirm with the user before renaming a repo that's actively deployed."""
+    return git.call("update_repo_settings", repo=repo, new_name=new_name, private=private, description=description)
+
+@mcp.tool()
 def list_github_files(repo: str = "niplex-mcp", path: str = ""):
     """List files and folders at a path in a GitHub repo.
     Args: repo (repo name, defaults to 'niplex-mcp'), path (folder path, empty string = repo root).
