@@ -11,6 +11,7 @@ from tools.managers.search_manager import SearchManager
 from tools.managers.youtube_manager import YoutubeManager
 from tools.managers.misc_manager import MiscManager
 from tools.managers.google_manager import GoogleManager
+from tools.managers.neural_manager import NeuralManager
 
 # Dependencies Bootloader
 def install_deps():
@@ -52,6 +53,7 @@ search = SearchManager()
 yt = YoutubeManager()
 misc = MiscManager()
 google = GoogleManager()
+neural = NeuralManager()
 
 # ==================== GITHUB ====================
 
@@ -267,6 +269,29 @@ def niplex_helper(q: str):
     """Generic echo/test utility — returns the input prefixed with 'NIPLEX Helper:'. Args: q (any string).
     Useful only for confirming the MCP connection itself is alive; has no real functionality."""
     return misc.call("helper", q=q)
+
+# ==================== NEURAL (sub-agent layer -> Adarshs-Stack) ====================
+# ask_neural / log_to_neural forward to a SEPARATE deployed MCP server
+# (Neural-MCP, github.com/Aj-Niplex/Neural) which runs its own sub-agent
+# (Agnes AI) against Adarshs-Stack. Requires NEURAL_MCP_URL and
+# NEURAL_MCP_API_KEY to be configured here in Niplex-MCP's environment,
+# matching Neural-MCP's own deployed URL and its NEURAL_MCP_API_KEY.
+
+@mcp.tool()
+def ask_neural(query: str):
+    """Ask Neural (a sub-agent with its own memory search) about Adarsh — his projects, decisions,
+    work history, or personal context stored in Adarshs-Stack. Forwards the query to a separate
+    Neural-MCP server. If nothing relevant is stored, Neural says so rather than guessing.
+    Args: query (a natural-language question, e.g. 'what did Adarsh work on with Claude this week')."""
+    return neural.call("ask", query=query)
+
+@mcp.tool()
+def log_to_neural(summary: str):
+    """Record new information for Neural to file into Adarshs-Stack. Neural decides WHERE it belongs
+    (an existing wiki topic page, the inbox if uncertain, a session log, a plan, or a USER.md fact)
+    rather than it always landing in one place. Use this to make something durable/findable later.
+    Args: summary (a concise description of what happened or what should be remembered)."""
+    return neural.call("log", summary=summary)
 
 # ==================== GOOGLE WORKSPACE ====================
 # Every tool below requires account="professional" or account="personal".
