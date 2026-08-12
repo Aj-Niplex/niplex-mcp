@@ -18,7 +18,7 @@ What *does* work: Horizon also accepts a plain, Horizon-issued Bearer token for 
 
 | Where | Variable | Value |
 |---|---|---|
-| Niplex-MCP env | `NEURAL_MCP_URL` | `https://neural.fastmcp.app/mcp` |
+| Niplex-MCP env | `NEURAL_MCP_URL` | `https://your-neural.fastmcp.app/mcp` |
 | Niplex-MCP env | `NEURAL_MCP_API_KEY` | the Horizon-issued token |
 | Neural-MCP env | `NEURAL_MCP_API_KEY` | **the same token, exactly** |
 
