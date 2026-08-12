@@ -73,7 +73,7 @@ def git_create_repo(name: str, private: bool = True, description: str = "", auto
 def git_update_repo_settings(repo: str, new_name: str = None, private: bool = None, description: str = None):
     """Rename a repo and/or change its visibility/description. Only the fields you pass are changed.
     Args: repo (current name), new_name (optional new name), private (optional True/False), description (optional).
-    Use this to archive old/unused repos: rename to something clear like 'archived-<name>' and set private=True.
+    Use this to archive old/unused repos: rename to something clear like 'archived-<n>' and set private=True.
     NOTE: GitHub keeps redirects for renamed repos, but any hardcoded URL referencing the old name (e.g. in a
     deploy config) will need manual updating. Confirm with the user before renaming a repo that's actively deployed."""
     return git.call("update_repo_settings", repo=repo, new_name=new_name, private=private, description=description)
@@ -269,6 +269,12 @@ def niplex_helper(q: str):
     """Generic echo/test utility — returns the input prefixed with 'NIPLEX Helper:'. Args: q (any string).
     Useful only for confirming the MCP connection itself is alive; has no real functionality."""
     return misc.call("helper", q=q)
+
+@mcp.tool()
+def list_installed_versions():
+    """Report the exact installed version of every package in requirements.txt, as actually running right now on this server.
+    No arguments. Use this before pinning/updating requirements.txt so version pins match reality instead of guessing."""
+    return misc.call("versions")
 
 # ==================== NEURAL (sub-agent layer -> Adarshs-Stack) ====================
 # ask_neural / log_to_neural forward to a SEPARATE deployed MCP server
