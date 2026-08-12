@@ -1,14 +1,13 @@
-import os
-import requests
+# DEPRECATED — not imported by any active manager.
+#
+# search_manager.py uses integrations/core_bridges.py's WebScraperBridge,
+# which actually checks URLs before fetching them (blocks localhost,
+# private IPs, and cloud metadata endpoints like 169.254.169.254). This
+# file used to be a separate, non-functional mock with none of that
+# protection. Re-exporting the safe version so anything that still
+# imports from here gets the real, protected implementation instead of
+# quietly losing that protection.
 
-class WebScraperBridge:
-    def __init__(self):
-        # Uses a generic scraping API or internal tool
-        self.api_key = os.getenv("SCRAPER_API_KEY", "mock_key")
+from integrations.core_bridges import WebScraperBridge
 
-    def scrape(self, url: str) -> str:
-        try:
-            # Mocking scraping logic
-            return f"Scraped content from {url}: [Sample metadata and text content extracted via API]"
-        except Exception as e:
-            return f"Scraper Error: {str(e)}"
+__all__ = ["WebScraperBridge"]
