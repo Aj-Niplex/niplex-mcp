@@ -30,7 +30,38 @@ class GitManager:
         }
 
     def call(self, tool: str, **kwargs):
-        method = getattr(self.github, tool, None)
-        if method is None:
-            return f"Unknown git tool: {tool}"
-        return method(**kwargs)
+        # Explicit allowlist — only these 14 methods are reachable from a
+        # tool call, matching exactly what's documented in describe() above.
+        # (Previously this used getattr(self.github, tool), which meant
+        # ANY public method on GithubBridge was callable this way, not just
+        # the ones meant to be exposed — safe today only because every
+        # caller happens to be a hardcoded string, but fragile.)
+        if tool == "list_repos":
+            return self.github.list_repos()
+        if tool == "create_repo":
+            return self.github.create_repo(**kwargs)
+        if tool == "list_files":
+            return self.github.list_files(**kwargs)
+        if tool == "read_file":
+            return self.github.read_file(**kwargs)
+        if tool == "write_file":
+            return self.github.write_file(**kwargs)
+        if tool == "create_branch":
+            return self.github.create_branch(**kwargs)
+        if tool == "list_branches":
+            return self.github.list_branches(**kwargs)
+        if tool == "list_commits":
+            return self.github.list_commits(**kwargs)
+        if tool == "get_commit":
+            return self.github.get_commit(**kwargs)
+        if tool == "create_issue":
+            return self.github.create_issue(**kwargs)
+        if tool == "list_issues":
+            return self.github.list_issues(**kwargs)
+        if tool == "add_issue_comment":
+            return self.github.add_issue_comment(**kwargs)
+        if tool == "create_pull_request":
+            return self.github.create_pull_request(**kwargs)
+        if tool == "list_pull_requests":
+            return self.github.list_pull_requests(**kwargs)
+        return f"Unknown git tool: {tool}"
