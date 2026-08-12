@@ -1,128 +1,62 @@
-# NIPLEX-MCP 🚀
+<p align="center">
+  <img src="assets/mcp-logo.svg" width="64" height="64" alt="Model Context Protocol logo" />
+</p>
 
-A professional Model Context Protocol (MCP) server designed as a secure, high-authority bridge between AI agents and developer infrastructure.
+<h1 align="center">Niplex-MCP</h1>
 
-## 🎯 Purpose
-NIPLEX-MCP allows AI agents to interact with private GitHub repositories and execute code in isolated, disposable environments without exposing sensitive credentials or risking the host system.
-
-## 🏗️ Architecture Flow
-```mermaid
-graph TD
-    %% Main Flow
-    Agents[A.I. Agents] --> MCP[Niplex M.C.P.]
-
-    %% Core Systems & Integrations
-    MCP --> GitHub[GitHub<br/>Read/Write]
-    MCP --> Daytona[Daytona Sandbox<br/>Isolated Code Execution] 
-    MCP --> Scraper[Web Scraper<br/>via Jina Reader]
-    MCP --> YouTube[YouTube Data<br/>Token-Optimized API]
-
-    %% Styling
-    style MCP fill:#1f6feb,stroke:#fff,stroke-width:2px,color:#fff
-    style Agents fill:#238636,stroke:#fff,stroke-width:1px,color:#fff
-    style Daytona fill:#da3633,stroke:#fff,stroke-width:1px,color:#fff
-    style Scraper fill:#d29922,stroke:#fff,stroke-width:1px,color:#fff
-    style YouTube fill:#ff0000,stroke:#fff,stroke-width:1px,color:#fff
-```
-
-## 🏗️ Modular Architecture
-The server is built with a decoupled architecture to ensure scalability and maintainability:
-
-- **`integrations/`**: Low-level API wrappers.
-  - `github.py`: Handles authenticated requests to the GitHub REST API.
-  - `daytona.py`: Manages the lifecycle of disposable sandboxes using the Daytona SDK.
-  - `core_bridges.py`: Web scraper (via Jina), You.com search bridge, and cache service.
-  - `youtube.py`: Token-optimized YouTube Data API bridge.
-  - `mcp_bridge.py`: Orchestration layer for remote MCP server delegation (not yet wired to a tool).
-- **`tools/`**: The orchestration layer.
-  - `manager.py`: Maps integration capabilities into high-level tools for the agent.
-- **`server.py`**: The FastMCP entry point that exposes tools to the connected AI client.
-
-## 🛠️ Key Capabilities
-
-### 1. Secure GitHub Bridge
-- **`list_github_files`**: Recursively maps the repository structure.
-- **`read_github_file`**: Retrieves file contents using secure PAT authentication.
-- **`write_github_file`**: Creates or updates a file with a commit message.
-
-### 2. Disposable Execution (Daytona)
-- **`execute_in_sandbox`**: The "Ghost Sandbox" pattern.
-  - **Provision**: Spawns a fresh Daytona sandbox.
-  - **Execute**: Runs the requested shell command.
-  - **Destroy**: Immediately deletes the sandbox to save credits and maintain security.
-
-### 3. Intelligence & Search
-- **`scrape_website`**: Extract high-fidelity content from any URL via Jina's reader.
-- **`search_web`**: Search via You.com — uses the official API if `YOU_COM_API_KEY` is set, otherwise falls back to a free, key-less search through Jina's reader.
-- **`search_youtube`**: Find videos and channel stats with minimal token overhead.
-- **`get_youtube_details`** / **`get_youtube_stats`**: Fetch details for specific video/channel IDs.
-
-## 🚀 Getting Started
-
-### Environment Variables
-The server requires the following variables to be set in the environment:
-- `GITHUB_PAT`: Your GitHub Personal Access Token.
-- `DAYTONA_API_KEY`: Your Daytona API Token.
-- `YOUTUBE_API_KEY`: Your Google YouTube Data API v3 key.
-- `YOU_COM_API_KEY` (optional): Your You.com API key — if unset, `search_web` uses the free fallback.
-
-### Installation & Run
-```bash
-pip install -r requirements.txt
-python server.py
-```
+<p align="center">
+  One AI agent's full toolkit — GitHub, Google Workspace, a live production server, three sandboxes, and a memory sub-agent — behind a single MCP server.
+</p>
 
 ---
-**NEVER STOP IMAGINING** | Orchestrated by Niplex-AI
-  - `neural_os.py`: Bridge to the internal life database.
-  - `scraper.py`: Interface for web data extraction.
-  - `you_com.py`: High-authority agentic search bridge.
-  - `youtube.py`: Token-optimized YouTube Data API bridge.
-  - `mcp_bridge.py`: Orchestration layer for remote MCP server delegation.
-- **`tools/`**: The orchestration layer.
-  - `manager.py`: Maps integration capabilities into high-level tools for the agent.
-- **`server.py`**: The FastMCP entry point that exposes tools to the connected AI client.
 
-## 🛠️ Key Capabilities
+## What this is
 
-### 1. Secure GitHub Bridge
-- **`list_github_files`**: Recursively maps the repository structure.
-- **`read_github_file`**: Retrieves file contents using secure PAT authentication.
+Niplex-MCP is a custom [Model Context Protocol](https://modelcontextprotocol.io) server: 47+ tools, one connection, usable by any MCP-capable AI client. The point isn't the tool count — it's that the AI on the front end is swappable. Point a different MCP client at the same server and it gets the same capabilities, no rebuild required.
 
-### 2. Disposable Execution (Daytona)
-- **`execute_in_sandbox`**: The "Ghost Sandbox" pattern.
-  - **Provision**: Spawns a fresh Daytona sandbox.
-  - **Execute**: Runs the requested shell command.
-  - **Destroy**: Immediately deletes the sandbox to save credits and maintain security.
+It's paired with **[Neural-MCP](https://github.com/Aj-Niplex/Neural)**, a separate sub-agent with its own memory, backed by a plain GitHub repo (`Adarshs-Stack`) acting as a durable, human-readable knowledge store.
 
-### 3. Life Database (Neural-OS)
-- **`query_neural_os`**: Access goals, tasks, and user profiles.
-- **`update_neural_os`**: Persist new memories or update goals.
+Read **[USE_CASES.md](./USE_CASES.md)** for what this actually looks like day-to-day, for both developers and people who've never touched an API key in their life.
 
-### 4. Intelligence & Search
-- **`scrape_website`**: Extract high-fidelity content from the web via API.
-- **`search_web`**: Agentic search via You.com for deep research.
-- **`search_youtube`**: Find viral outlier videos and channel stats with minimal token overhead.
+## Tool groups
 
-### 5. MCP Orchestration
-- **`call_remote_mcp`**: Delegate specific tool execution to other connected MCP servers, turning Niplex-MCP into a Master Orchestrator.
+| Group | Examples | What it's for |
+|---|---|---|
+| **GitHub** | `git_list_repos`, `write_github_file`, `git_create_pull_request` | Full repo, file, branch, issue, and PR access — every repo on the account |
+| **Sandboxes** | `execute_in_sandbox`, `e2b_run_code`, `horizon_run_code` | Disposable environments for running code, three different providers |
+| **HidenCloud** | `list_hidencloud_files`, `write_hidencloud_file` | File-only access to the live production agent server, via SFTP |
+| **Search** | `search_web`, `scrape_website` | Web search with a free fallback, SSRF-guarded page scraping |
+| **YouTube** | `search_youtube`, `get_youtube_details` | YouTube Data API |
+| **Neural** | `ask_neural`, `log_to_neural` | The memory/context sub-agent — see below |
+| **Google Workspace** | `gmail_search`, `calendar_list_events`, `docs_create` | Gmail (read + draft, no direct send), Calendar, Drive, Docs |
 
-## 🚀 Getting Started
+Full breakdown of every single tool: see `server.py`, or `docs/ARCHITECTURE.md` for the grouped version with diagrams.
 
-### Environment Variables
-The server requires the following variables to be set in the environment:
-- `GITHUB_PAT`: Your GitHub Personal Access Token.
-- `DAYTONA_API_KEY`: Your Daytona API Token.
-- `NEURAL_OS_URL`: URL of the Neural-OS instance.
-- `SCRAPER_API_KEY`: API key for the scraper service.
-- `YOUTUBE_API_KEY`: Your Google YouTube Data API v3 key.
-- `YOU_COM_API_KEY`: Your You.com API key.
+## The Neural connection
 
-### Installation & Run
-```bash
-pip install fastmcp requests daytona-sdk
-python server.py
-```
+`ask_neural` and `log_to_neural` forward to a separately-deployed MCP server that runs its own sub-agent against `Adarshs-Stack`. Two independent auth layers sit between them (Horizon's platform-level OAuth, and an app-level API key) — the full story of how that works, and how it was debugged, is in **[docs/NEURAL_CONNECTION.md](./docs/NEURAL_CONNECTION.md)**.
 
----
-**NEVER STOP IMAGINING** | Orchestrated by Niplex-AI
+## Docs
+
+Everything below lives in **[docs/](./docs/)**:
+
+- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — how every piece fits together, with a diagram
+- **[NEURAL_CONNECTION.md](./docs/NEURAL_CONNECTION.md)** — the Niplex ↔ Neural auth story in full
+- **[SETUP.md](./docs/SETUP.md)** — every environment variable, what it's for, how to get one running from scratch
+- **[SECURITY.md](./docs/SECURITY.md)** — the security review, what got fixed, the ground rules going forward
+- **[DEV_DIARY.md](./docs/DEV_DIARY.md)** — running log of what changed and why
+
+## Design choices worth knowing about
+
+- **No email-send tool** — only drafts. A human always hits send.
+- **No PR auto-merge tool** — merges are manual, on purpose.
+- **HidenCloud is file-only** — no shell access, even though it's where the live agent actually runs.
+- Every tool-dispatch layer uses an **explicit allowlist**, not open-ended dynamic dispatch — see `docs/SECURITY.md`.
+
+## Status
+
+Actively developed, security-reviewed, open source. Deployed on [Horizon](https://fastmcp.app), auto-deploys on push to `main`.
+
+## Roadmap
+
+Plans to move toward pluggable flows — bring your own tools, the MCP layer adapts to them — rather than a fixed toolkit tied to one person's specific accounts.
