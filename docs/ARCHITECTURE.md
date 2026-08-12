@@ -18,7 +18,7 @@ Niplex-MCP is one AI agent's whole toolkit, exposed as a single MCP server so an
                                ▼
               ┌────────────────────────────────┐
               │   Niplex-MCP (this repo)         │
-              │   aj-niplex.fastmcp.app/mcp      │
+              │   your-mcp.fastmcp.app/mcp      │
               │   47+ tools, 8 tool groups        │
               └───┬────┬────┬────┬────┬────┬────┘
                   │    │    │    │    │    │
