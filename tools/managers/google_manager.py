@@ -4,7 +4,8 @@ from integrations.google_bridge import GoogleWorkspaceBridge
 class GoogleManager:
     """
     Gmail (read + draft only, NOT direct send), Calendar, Drive/Docs —
-    across 3 separate accounts: professional, personal, company.
+    across 2 accounts: professional, personal. (A third "company" account
+    was deliberately deferred — see integrations/google_bridge.py.)
 
     send_email exists in the bridge but is intentionally NOT exposed here.
     create_draft is the default path for anything AI-composed.
@@ -21,7 +22,7 @@ class GoogleManager:
     def describe(self):
         return {
             "namespace": "google",
-            "description": "Gmail (search/read/draft — no direct send), Calendar, Drive & Docs. Every tool needs account='professional'|'personal'|'company'.",
+            "description": "Gmail (search/read/draft — no direct send), Calendar, Drive & Docs. Every tool needs account='professional'|'personal'.",
             "tools": {
                 "search_emails": "Search Gmail. Args: account, query, max_results (default 10).",
                 "get_thread_details": "Read full email thread content. Args: account, thread_id.",
@@ -35,16 +36,30 @@ class GoogleManager:
             }
         }
 
+    # Explicit allowlist — only these 9 methods are reachable from a tool
+    # call, matching exactly what's documented in describe() above.
+    # (Previously everything past the send_email check used
+    # getattr(bridge, tool), meaning any public method on
+    # GoogleWorkspaceBridge was callable this way — the send_email block
+    # below only existed because of that gap. Now new bridge methods stay
+    # unreachable until explicitly added here, no case-by-case blocklisting
+    # required.)
+    _ALLOWED_TOOLS = {
+        "search_emails", "get_thread_details", "create_draft",
+        "list_events", "create_event", "update_event",
+        "search_files", "read_doc", "create_doc",
+    }
+
     def call(self, tool: str, account: str = None, **kwargs):
         if tool == "send_email":
             return "Unknown or disabled google tool: send_email (intentionally not available — use create_draft instead)"
+        if tool not in self._ALLOWED_TOOLS:
+            return f"Unknown google tool: {tool}"
         if account is None:
-            return "Missing required 'account' argument: must be 'professional', 'personal', or 'company'."
+            return "Missing required 'account' argument: must be 'professional' or 'personal'."
         try:
             bridge = self._get_bridge(account)
         except ValueError as e:
             return str(e)
-        method = getattr(bridge, tool, None)
-        if method is None:
-            return f"Unknown google tool: {tool}"
+        method = getattr(bridge, tool)
         return method(**kwargs)
