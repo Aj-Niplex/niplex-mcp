@@ -237,7 +237,7 @@ def search_web(q: str, m: str = "web"):
 
 @mcp.tool()
 def scrape_website(url: str):
-    """Fetch and extract clean, readable text content from a specific webpage URL, via Jina's reader.
+    """Fetch and extract clean, readable text content from a specific webpage URL, via Jina's reader. Cached for 1 hour per URL if MDB_MCP_CONNECTION_STRING is configured.
     Args: url (must be a full http:// or https:// URL to a public page — private IPs, localhost, and cloud metadata endpoints are blocked for security).
     Best used after search_web to read the full content of a specific result."""
     return search.call("scrape_website", url=url)
@@ -275,6 +275,13 @@ def list_installed_versions():
     """Report the exact installed version of every package in requirements.txt, as actually running right now on this server.
     No arguments. Use this before pinning/updating requirements.txt so version pins match reality instead of guessing."""
     return misc.call("versions")
+
+@mcp.tool()
+def recent_errors(limit: int = 20):
+    """Read back recent errors logged from search_web/scrape_website (and anything else wired to the shared error log).
+    Args: limit (max entries, default 20). Requires MDB_MCP_CONNECTION_STRING to be configured — returns a clear message if it isn't.
+    Use this to see what's actually been failing over time instead of only whatever error happened to show up in one chat."""
+    return misc.call("recent_errors", limit=limit)
 
 # ==================== NEURAL (sub-agent layer -> Adarshs-Stack) ====================
 # ask_neural / log_to_neural forward to a SEPARATE deployed MCP server
