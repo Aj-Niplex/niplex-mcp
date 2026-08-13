@@ -8,6 +8,7 @@ This folder is the internal manual for the whole system — not just this one re
 | [NEURAL_CONNECTION.md](./NEURAL_CONNECTION.md) | Specifically how Niplex-MCP ↔ Neural-MCP authenticate, including the real debugging story of how this got fixed |
 | [SETUP.md](./SETUP.md) | Every environment variable this needs, what it's for, and where to get it |
 | [SECURITY.md](./SECURITY.md) | The full security review, what was found, what got fixed, and the ground rules going forward |
-| [DEV_DIARY.md](./DEV_DIARY.md) | Running log of what changed and why, in order |
+| [CHANGELOG.md](./CHANGELOG.md) | Version-by-version record of what changed and **why** — the short, structured version |
+| [DEV_DIARY.md](./DEV_DIARY.md) | Running log of what changed and why, in order — the fuller story behind each changelog entry |
 
 **Start here if you're new to this project:** read ARCHITECTURE.md first, then SETUP.md if you're standing up your own copy.
