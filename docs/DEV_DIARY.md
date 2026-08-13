@@ -4,6 +4,20 @@ Running log of what changed and why, newest first. Not a replacement for commit 
 
 ---
 
+## 2026-08-13 — MongoDB actually gets used
+
+`pymongo` had been an unused dependency since the very start — `CacheService` existed in `core_bridges.py`, fully written, but nothing ever called it. Came up while explaining what it was even for.
+
+Wired it into `scrape_website`: same URL scraped twice within an hour now hits a 1-hour cache instead of re-fetching. Deliberately did **not** cache `search_web` — a search for current/breaking topics needs to stay live, and caching it would mean quietly serving stale results dressed up as fresh ones.
+
+Also added a proper error log on the same MongoDB connection — `search_web` and `scrape_website` failures now get recorded (source, message, context, timestamp) instead of only existing in whatever chat turn showed the error. New `recent_errors` tool reads it back. While touching `scrape()`, noticed the actual network request wasn't wrapped in a try/except at all — an unhandled exception would have propagated instead of returning a clean error string. Fixed that at the same time.
+
+Both features are fully opt-in: with no `MDB_MCP_CONNECTION_STRING` set, everything behaves exactly as it did before this entry — confirmed by testing `scrape_website` immediately after deploying, before any database was connected.
+
+See `docs/CHANGELOG.md` (v1.2) for the short version, `docs/SETUP.md` for how to actually turn this on.
+
+---
+
 ## 2026-08-12 — Issue triage, the Neural auth saga, full security review, docs
 
 **Started from:** 4 open issues (#1–#4 in this repo) reporting `ask_neural`, `list_hidencloud_files`, and `calendar_list_events` all failing, plus a meta report tying them together.
