@@ -35,9 +35,10 @@ def _is_safe_url(url: str) -> bool:
 
 class CacheService:
     """
-    Optional cache backed by MongoDB. Every method is a safe no-op if
-    MDB_MCP_CONNECTION_STRING isn't set, or if the connection fails — callers
-    always just get a clean cache miss, nothing ever breaks because of this.
+    Optional cache + error log, both backed by MongoDB. Every method is a
+    safe no-op if MDB_MCP_CONNECTION_STRING isn't set, or if the connection
+    fails — callers always just get a clean miss/no-op, nothing ever breaks
+    because of this.
     """
     def __init__(self):
         self.connection_string = os.getenv('MDB_MCP_CONNECTION_STRING')
@@ -57,6 +58,8 @@ class CacheService:
             self.client = None
             self.connected = False
             return False
+
+    # ---------- cache ----------
 
     def get(self, key, max_age_seconds=None):
         if not self.connected:
@@ -85,15 +88,47 @@ class CacheService:
         except Exception:
             pass
 
+    # ---------- error log ----------
+    # A running record of failures across the system, so an error isn't
+    # only visible in the one chat response it happened in. Nothing reads
+    # this automatically — call get_recent_errors() (exposed as the
+    # recent_errors tool) to actually look at it.
+
+    def log_error(self, source: str, error: str, context: dict = None):
+        if not self.connected:
+            return
+        try:
+            db = self.client['mcp_cache']
+            db.error_log.insert_one({
+                "source": source,          # e.g. "scrape_website", "search_web"
+                "error": str(error)[:2000],  # capped so one huge traceback can't blow up storage
+                "context": context or {},
+                "timestamp": time.time(),
+            })
+        except Exception:
+            pass  # logging a failure should never itself cause a failure
+
+    def get_recent_errors(self, limit: int = 20) -> str:
+        if not self.connected:
+            return "Error log not available — MDB_MCP_CONNECTION_STRING isn't configured."
+        try:
+            db = self.client['mcp_cache']
+            docs = db.error_log.find().sort("timestamp", -1).limit(limit)
+            lines = []
+            for d in docs:
+                ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(d.get("timestamp", 0)))
+                lines.append(f"[{ts}] {d.get('source', '?')}: {d.get('error', '?')}")
+            return "\n".join(lines) if lines else "No errors logged yet."
+        except Exception as e:
+            return f"Could not read error log: {str(e)}"
+
 class YouComBridge:
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, cache: "CacheService" = None):
         self.api_key = api_key or os.getenv('YOU_COM_API_KEY')
         self.base_url = 'https://api.you.com/v1/search'
+        self.cache = cache  # used for error logging only — search results are NOT cached (need to stay current)
 
     def search(self, query, mode='web'):
-        # Deliberately NOT cached — search results need to be current
-        # (news, "latest" queries, etc.); caching here would risk serving
-        # stale results as if they were fresh.
         if not self.api_key:
             return self._free_search(query, mode)
         headers = {'X-API-Key': self.api_key, 'Content-Type': 'application/json'}
@@ -104,6 +139,8 @@ class YouComBridge:
             data = response.json()
             return data.get('answer', json.dumps(data.get('results', data), indent=2))
         except Exception as e:
+            if self.cache:
+                self.cache.log_error("search_web", str(e), {"query": query, "mode": mode})
             return f'You.com API Error: {str(e)}'
 
     def _free_search(self, query, mode):
@@ -116,15 +153,16 @@ class YouComBridge:
             text = response.text
             return text[:4000] if len(text) > 4000 else text
         except Exception as e:
+            if self.cache:
+                self.cache.log_error("search_web_free_fallback", str(e), {"query": query, "mode": mode})
             return f'Free Search Error: {str(e)}'
 
 class WebScraperBridge:
     """
     Scrapes a URL via Jina's reader, with SSRF protection. Results are
     cached per-URL for SCRAPE_CACHE_TTL_SECONDS if a CacheService is passed
-    in and connected — re-scraping the same page repeatedly hits the cache
-    instead of making a fresh request every time, but never for longer than
-    the TTL, so pages don't go stale forever.
+    in and connected. Failures get logged to the same CacheService's error
+    log (if connected) instead of just vanishing once the response is read.
     """
     SCRAPE_CACHE_TTL_SECONDS = 3600  # 1 hour
 
@@ -143,7 +181,14 @@ class WebScraperBridge:
                 return cached
 
         jina_url = "https://r.jina.ai/" + url
-        result = requests.get(jina_url, timeout=30).text
+        try:
+            response = requests.get(jina_url, timeout=30)
+            response.raise_for_status()
+            result = response.text
+        except Exception as e:
+            if self.cache:
+                self.cache.log_error("scrape_website", str(e), {"url": url})
+            return f"Scrape error: {str(e)}"
 
         if self.cache:
             self.cache.set(cache_key, result)
