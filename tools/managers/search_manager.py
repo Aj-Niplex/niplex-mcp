@@ -8,7 +8,7 @@ class SearchManager:
         cache = CacheService()
         cache.connect()  # safe no-op if MDB_MCP_CONNECTION_STRING isn't set
         self.scraper = WebScraperBridge(cache=cache)
-        self.you_com = YouComBridge()  # intentionally uncached — see core_bridges.py
+        self.you_com = YouComBridge(cache=cache)  # cache used for error logging only — results aren't cached
 
     def describe(self):
         return {
