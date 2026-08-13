@@ -1,12 +1,14 @@
-from integrations.core_bridges import WebScraperBridge, YouComBridge
+from integrations.core_bridges import WebScraperBridge, YouComBridge, CacheService
 
 
 class SearchManager:
     """Owns web search (You.com API / free DuckDuckGo fallback) and Jina-based scraping."""
 
     def __init__(self):
-        self.scraper = WebScraperBridge()
-        self.you_com = YouComBridge()
+        cache = CacheService()
+        cache.connect()  # safe no-op if MDB_MCP_CONNECTION_STRING isn't set
+        self.scraper = WebScraperBridge(cache=cache)
+        self.you_com = YouComBridge()  # intentionally uncached — see core_bridges.py
 
     def describe(self):
         return {
@@ -14,7 +16,7 @@ class SearchManager:
             "description": "Broad web search and targeted webpage scraping/extraction.",
             "tools": {
                 "search_web": "Broad internet search. Uses You.com API if YOU_COM_API_KEY is set, else free DuckDuckGo fallback via Jina. Args: q, m (mode, default 'web').",
-                "scrape_website": "Extract clean readable content from a specific URL via Jina's reader. Args: url.",
+                "scrape_website": "Extract clean readable content from a specific URL via Jina's reader. Cached for 1 hour per URL if MDB_MCP_CONNECTION_STRING is configured — otherwise behaves exactly as before. Args: url.",
             }
         }
 
