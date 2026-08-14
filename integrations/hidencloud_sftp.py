@@ -80,12 +80,14 @@ class HidenCloudSFTPBridge:
             # seconds instead of hanging on the OS's default TCP timeout.
             sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
             transport = paramiko.Transport(sock)
-            transport.connect(
-                username=self.user,
-                password=self.password,
-                banner_timeout=self.timeout,
-                auth_timeout=self.timeout,
-            )
+            # banner_timeout / auth_timeout are Transport ATTRIBUTES (set
+            # before connecting), not accepted keyword args on connect()
+            # itself — paramiko 5.0.0's Transport.connect() signature is
+            # just (hostkey, username, password, pkey). Passing them as
+            # kwargs raises TypeError and breaks every SFTP call.
+            transport.banner_timeout = self.timeout
+            transport.auth_timeout = self.timeout
+            transport.connect(username=self.user, password=self.password)
             sftp = paramiko.SFTPClient.from_transport(transport)
             return (sftp, transport), None
         except Exception as e:
