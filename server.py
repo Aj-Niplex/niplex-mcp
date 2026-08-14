@@ -226,6 +226,26 @@ def delete_hidencloud_file(path: str):
     """Permanently delete a file on the HidenCloud server via SFTP. Args: path (full file path). Irreversible — confirm with the user before calling on anything not obviously disposable."""
     return sftp.call("delete_file", path=path)
 
+@mcp.tool()
+def stat_hidencloud_file(path: str):
+    """Check whether a file/dir exists on the HidenCloud server and get its type, size, and last-modified time. Args: path (full file path). Use before read/write to confirm what's actually there."""
+    return sftp.call("stat", path=path)
+
+@mcp.tool()
+def create_hidencloud_dir(path: str):
+    """Create a directory (and any missing parents) on the HidenCloud server via SFTP. Args: path (full directory path). No-op-safe: if it already exists, reports it as ready."""
+    return sftp.call("mkdir", path=path)
+
+@mcp.tool()
+def rename_hidencloud_file(path: str, new_path: str):
+    """Rename or move a file/dir on the HidenCloud server via SFTP. Args: path (current location), new_path (destination). Both must stay inside the server's confined root."""
+    return sftp.call("rename", path=path, new_path=new_path)
+
+@mcp.tool()
+def search_hidencloud_files(path: str = "/", pattern: str = "", max_depth: int = 4):
+    """Recursively find files/dirs on the HidenCloud server whose name contains a substring (case-insensitive). Args: path (default '/'), pattern (e.g. 'requirements'), max_depth (default 4). Depth- and result-capped so it can't walk the whole server."""
+    return sftp.call("search", path=path, pattern=pattern, max_depth=max_depth)
+
 # ==================== SEARCH & SCRAPE ====================
 
 @mcp.tool()
