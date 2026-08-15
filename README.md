@@ -55,7 +55,7 @@ Everything below lives in **[docs/](./docs/)**:
 
 ## Status
 
-Actively developed, security-reviewed, open source. Deployed on [Horizon](https://fastmcp.app), auto-deploys on push to `main`.
+Actively developed, security-reviewed, open source. Deployed on [Horizon](https://horizon.prefect.com), auto-deploys on push to `main`.
 
 ## Roadmap
 
