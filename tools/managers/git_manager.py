@@ -14,6 +14,7 @@ class GitManager:
             "tools": {
                 "list_repos": "List all repositories under your account.",
                 "create_repo": "Create a new repository. Args: name, private (default True), description (optional), auto_init (default True).",
+                "update_repo_settings": "Rename/change visibility/description of a repo. Args: repo, new_name (optional), private (optional), description (optional).",
                 "list_files": "List files/dirs in a repo path. Args: repo (default 'niplex-mcp'), path (default '').",
                 "read_file": "Read a file's content. Args: repo, file_path.",
                 "write_file": "Create/update a file with a commit. Args: repo, file_path, content, commit_message, branch (optional).",
@@ -30,7 +31,7 @@ class GitManager:
         }
 
     def call(self, tool: str, **kwargs):
-        # Explicit allowlist — only these 14 methods are reachable from a
+        # Explicit allowlist — only these 15 methods are reachable from a
         # tool call, matching exactly what's documented in describe() above.
         # (Previously this used getattr(self.github, tool), which meant
         # ANY public method on GithubBridge was callable this way, not just
@@ -40,6 +41,8 @@ class GitManager:
             return self.github.list_repos()
         if tool == "create_repo":
             return self.github.create_repo(**kwargs)
+        if tool == "update_repo_settings":
+            return self.github.update_repo_settings(**kwargs)
         if tool == "list_files":
             return self.github.list_files(**kwargs)
         if tool == "read_file":
